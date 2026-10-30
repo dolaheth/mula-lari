@@ -3,81 +3,96 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#000000">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#F5F5F7">
+<meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mula Lari">
 <title>SihatLab Mula Lari</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 <style>
+/* Same look as the SihatLab website: mist background, white cards, black hero, volt pill buttons, Inter. */
 :root {
-  --bg: #000; --card: #1C1C1E; --card2: #2C2C2E; --line: #3A3A3C;
-  --text: #F5F5F7; --mute: #A1A1A6; --volt: #C8F31D;
-  --red: #FF453A; --yellow: #FFD60A; --green: #34C759;
-  color-scheme: dark;
+  --bg: #F5F5F7; --card: #FFFFFF; --card2: #F2F2F5; --line: #E5E5EA;
+  --text: #1D1D1F; --mute: #6E6E73; --soft: #A1A1A6; --ink: #1D1D1F;
+  --volt: #C8F31D; --red: #FF3B30; --red-ink: #C4281C; --red-soft: #FFF1F0;
+  --yellow: #FFD60A; --green: #34C759; --warn: #A15C00; --good: #3B7A00;
+  color-scheme: light;
 }
 * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
-html, body { background: var(--bg); color: var(--text); }
-body { font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Arial, sans-serif; font-size: 16px; line-height: 1.45; min-height: 100vh; }
+html, body { height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
+body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+/* Only the content scrolls, so the tab bar never moves (fixes the floating bar in iPhone Safari). */
+#scroller { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
-.wrap { max-width: 480px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
-.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.wrap { max-width: 480px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 16px 28px; }
+.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .top img { height: 22px; display: block; }
-.top small { color: var(--mute); font-size: 13px; }
-h1 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.1; }
-h2 { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin: 26px 0 10px; }
-h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+.top small { color: var(--mute); font-size: 13px; font-weight: 600; }
+h1 { font-size: 34px; font-weight: 800; letter-spacing: -1.4px; line-height: 1.05; }
+h2 { font-size: 22px; font-weight: 800; letter-spacing: -.6px; margin: 30px 0 12px; }
+h3 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; line-height: 1.25; margin: 0 0 4px; }
 p { margin: 0 0 10px; }
 .mute { color: var(--mute); }
 .small { font-size: 13px; }
-.eyebrow { color: var(--volt); font-weight: 700; font-size: 13px; letter-spacing: .3px; text-transform: uppercase; margin-bottom: 6px; }
-.card { background: var(--card); border-radius: 18px; padding: 16px; margin-bottom: 10px; }
-.card.on { outline: 2px solid var(--volt); }
+.eyebrow { color: var(--mute); font-weight: 600; font-size: 13px; letter-spacing: .2px; margin-bottom: 6px; }
+.card { background: var(--card); border-radius: 22px; padding: 18px; margin-bottom: 12px; }
+.card.on { box-shadow: 0 0 0 2px var(--ink); }
 .row { display: flex; gap: 10px; align-items: center; }
 .between { justify-content: space-between; }
-.btn { display: block; width: 100%; text-align: center; padding: 14px 16px; border-radius: 14px; font-weight: 800; font-size: 16px; background: var(--card2); }
+.btn { display: block; width: 100%; text-align: center; padding: 14px 18px; border-radius: 999px; font-weight: 700; font-size: 16px; background: var(--card2); color: var(--ink); }
 .btn.primary { background: var(--volt); color: #000; }
-.btn.red { background: var(--red); color: #000; }
-.btn.ghost { background: transparent; border: 1px solid var(--line); }
+.btn.red { background: var(--red); color: #fff; }
+.btn.ghost { background: transparent; box-shadow: inset 0 0 0 1px #D2D2D7; }
 .btn + .btn { margin-top: 8px; }
 .row > .btn + .btn { margin-top: 0; }
-.btn[disabled] { opacity: .5; }
-.link { color: var(--mute); font-size: 14px; text-decoration: underline; padding: 8px 0; }
+.btn[disabled] { opacity: .45; }
+.link { color: var(--mute); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0; }
 .num { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
-.num.done { background: var(--volt); color: #000; }
+.num.done { background: var(--ink); color: var(--volt); }
 .chips { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; margin-top: 8px; }
 .chips.ten { grid-template-columns: repeat(10, 1fr); }
-.chip { padding: 9px 0; border-radius: 8px; background: var(--card2); font-weight: 800; font-size: 14px; text-align: center; }
-.chip.sel { outline: 2px solid #FFF; }
-.c-g { background: #1F4D2B; } .c-y { background: #5C4E0B; } .c-r { background: #5E1A16; }
-.c-g.sel { background: var(--green); color: #000; } .c-y.sel { background: var(--yellow); color: #000; } .c-r.sel { background: var(--red); color: #000; }
-.pill { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--card2); color: var(--text); margin-right: 4px; }
+.chip { padding: 9px 0; border-radius: 10px; background: var(--card2); font-weight: 800; font-size: 14px; text-align: center; }
+.chip.sel { box-shadow: 0 0 0 2px var(--ink); }
+.c-g { background: #E3F6E8; color: #1E6B34; } .c-y { background: #FFF4CC; color: #7A5A00; } .c-r { background: #FFE3E0; color: #A0150C; }
+.c-g.sel { background: var(--green); color: #000; } .c-y.sel { background: var(--yellow); color: #000; } .c-r.sel { background: var(--red); color: #fff; }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--card2); color: var(--ink); margin-right: 4px; }
 .pill.v { background: var(--volt); color: #000; }
-.pill.g { background: var(--green); color: #000; } .pill.y { background: var(--yellow); color: #000; } .pill.r { background: var(--red); color: #000; }
-.journey { display: flex; gap: 3px; margin: 14px 0 6px; }
-.journey i { flex: 1; height: 6px; border-radius: 3px; background: var(--card2); }
-.journey i.past { background: #6B7A1F; } .journey i.now { background: var(--volt); }
+.pill.g { background: var(--green); color: #000; } .pill.y { background: var(--yellow); color: #000; } .pill.r { background: var(--red); color: #fff; }
+/* black hero card, like the website hero */
+.hero { background: #000; color: #fff; border-radius: 28px; padding: 22px 20px 18px; margin-bottom: 12px; }
+.hero .eyebrow { color: var(--volt); }
+.hero h1 { font-size: 40px; letter-spacing: -1.8px; }
+.hero .pill { background: #2C2C2E; color: #F5F5F7; }
+.hero .pill.v { background: var(--volt); color: #000; }
+.journey { display: flex; gap: 3px; margin: 16px 0 6px; }
+.journey i { flex: 1; height: 6px; border-radius: 3px; background: #3A3A3C; }
+.journey i.past { background: #7E8F23; } .journey i.now { background: var(--volt); }
 .journey i.gap { flex: .4; background: transparent; }
-.jl { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); }
-.alert { border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; font-weight: 600; }
-.alert.red { background: var(--red); color: #000; }
+.jl { display: flex; justify-content: space-between; font-size: 12px; color: var(--soft); }
+.alert { border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; font-weight: 600; }
+.alert.red { background: var(--red); color: #fff; }
 .alert.volt { background: var(--volt); color: #000; }
 .alert.dim { background: var(--card2); }
-.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid #1C1C1E; padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+.tabs { flex: none; position: relative; z-index: 5; background: rgba(255,255,255,.9); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 1px solid rgba(0,0,0,.08); padding-bottom: env(safe-area-inset-bottom); }
+.tabs[hidden] { display: none; }
 .tabs .in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
-.tabs button { padding: 12px 0 10px; font-size: 13px; font-weight: 700; color: var(--mute); }
-.tabs button.on { color: var(--volt); }
-.tabs svg { display: block; margin: 0 auto 3px; width: 22px; height: 22px; }
-.sheet { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
-.sheet .box { background: var(--card); width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); max-height: 92vh; overflow: auto; }
+.tabs button { padding: 8px 0 8px; font-size: 12px; font-weight: 600; color: var(--mute); }
+.tabs button.on { color: var(--ink); font-weight: 800; }
+.tabs svg { display: block; margin: 0 auto 2px; width: 22px; height: 22px; padding: 4px 16px; box-sizing: content-box; border-radius: 999px; }
+.tabs button.on svg { background: var(--volt); color: #000; }
+.sheet { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet .box { background: var(--card); width: 100%; max-width: 480px; border-radius: 28px 28px 0 0; padding: 22px 18px calc(20px + env(safe-area-inset-bottom)); max-height: 92vh; overflow: auto; }
 .check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.check input { width: 22px; height: 22px; accent-color: var(--volt); flex: none; margin-top: 1px; }
+.check input { width: 22px; height: 22px; accent-color: var(--ink); flex: none; margin-top: 1px; }
 ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom: 4px; }
-/* timer */
-.timer { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); background: #000; transition: background .3s; }
+/* timer (stays dark + volt, easy to read outside) */
+.timer { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); background: #000; color: #fff; transition: background .3s; }
 .timer.run { background: var(--volt); color: #000; }
 .timer .meta { font-size: 14px; font-weight: 700; opacity: .75; }
 .timer .phase { font-size: 46px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; margin-top: 8vh; }
@@ -91,52 +106,59 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .strip i.past { opacity: .35; }
 .timer .tot { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; opacity: .8; margin-bottom: 14px; }
 .timer .ctl { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; }
-.timer .ctl button { padding: 16px 0; border-radius: 16px; font-weight: 800; background: #1C1C1E; color: #FFF; }
+.timer .ctl button { padding: 16px 0; border-radius: 999px; font-weight: 800; background: #1C1C1E; color: #FFF; }
 .timer.run .ctl button { background: #000; color: var(--volt); }
 .timer .warn { font-size: 12px; opacity: .65; text-align: center; margin-top: 10px; }
 .hist .cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
-.hist .cells div { background: var(--card2); border-radius: 10px; padding: 6px 8px; font-size: 12px; }
-.badge { display: flex; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--volt); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; }
+.hist .cells div { background: var(--card2); border-radius: 12px; padding: 6px 8px; font-size: 12px; }
+.badge { display: flex; gap: 12px; align-items: center; background: #000; color: #fff; border-radius: 22px; padding: 14px 16px; margin-bottom: 8px; }
+.badge .mute { color: var(--soft); }
 .badge .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--volt); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none; }
-.switch { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.switch input { width: 22px; height: 22px; accent-color: var(--volt); }
+.switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.switch input { width: 22px; height: 22px; accent-color: var(--ink); flex: none; }
 .bmi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bmi label { display: flex; flex-direction: column; gap: 4px; }
-.bmi input { width: 100%; padding: 12px; border-radius: 12px; background: var(--card2); color: var(--text); border: 0; font: inherit; font-size: 18px; }
-.bmi input:focus-visible { outline: 2px solid var(--volt); }
+.bmi input, .field { width: 100%; padding: 12px 14px; border-radius: 14px; background: var(--card); color: var(--text); border: 1px solid #D2D2D7; font: inherit; font-size: 18px; }
+.bmi input:focus-visible, .field:focus-visible { outline: 3px solid #0071E3; outline-offset: 1px; }
 .strip i.m { background: #D1D1D6; }
 .timer.run .strip i.m { background: rgba(0,0,0,.4); }
 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 8px 0; }
-.days button { padding: 10px 0; border-radius: 10px; background: var(--card2); font-weight: 800; font-size: 13px; }
-.days button.sel { background: var(--volt); color: #000; }
-.field { width: 100%; padding: 12px; border-radius: 12px; background: var(--card2); color: var(--text); border: 0; font: inherit; font-size: 18px; }
+.days button { padding: 10px 0; border-radius: 12px; background: var(--card2); font-weight: 800; font-size: 13px; }
+.days button.sel { background: var(--ink); color: var(--volt); }
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; }
 .cal b { font-size: 11px; color: var(--mute); text-align: center; font-weight: 700; }
 .cal i { height: 16px; border-radius: 4px; background: var(--card2); display: block; }
 .cal i.on { background: var(--volt); }
-.cal i.tst { background: #FFFFFF; }
-.cal i.now { outline: 2px solid var(--mute); outline-offset: -2px; }
-.cal i.fut { background: transparent; border: 1px dashed #2C2C2E; }
+.cal i.tst { background: var(--ink); }
+.cal i.now { box-shadow: inset 0 0 0 2px var(--mute); }
+.cal i.fut { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin: 6px 0; }
-.ba div { background: var(--card2); border-radius: 12px; padding: 10px; text-align: center; }
-.ba div b { display: block; font-size: 22px; letter-spacing: -.5px; }
-.ba .to { color: var(--volt); font-weight: 900; background: none; padding: 0; }
-.invite { border: 1px solid var(--volt); }
+.ba div { background: var(--card2); border-radius: 16px; padding: 10px; text-align: center; }
+.ba div b { display: block; font-size: 24px; letter-spacing: -.8px; }
+.ba .to { color: var(--ink); font-weight: 900; background: none; padding: 0; }
+/* dark cards: install guide, retest, class invite (like the website's dark guarantee card) */
+.invite { background: #000; color: #fff; }
+.invite .eyebrow { color: var(--volt); }
+.invite .mute, .invite .link { color: var(--soft); }
+.invite .steps li { border-top-color: #2C2C2E; }
+.invite .seg2 button { background: #2C2C2E; color: #fff; }
+.invite .seg2 button.sel { background: #fff; color: #000; }
 .steps { list-style: none; padding: 0; margin: 10px 0 4px; counter-reset: st; }
 .steps li { counter-increment: st; display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
 .steps li:first-child { border-top: 0; }
 .steps li::before { content: counter(st); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--volt); color: #000; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; }
 .steps svg { width: 18px; height: 18px; vertical-align: -3px; }
-.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-.seg2 button { padding: 9px 0; border-radius: 10px; background: var(--card2); font-weight: 800; font-size: 14px; }
-.seg2 button.sel { background: #FFF; color: #000; }
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.seg2 button { padding: 9px 0; border-radius: 999px; background: var(--card2); font-weight: 700; font-size: 14px; }
+.seg2 button.sel { background: var(--ink); color: #fff; }
 .talk { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
-.talk div { background: var(--card2); border-radius: 12px; padding: 10px; font-size: 13px; }
+.talk div { background: var(--card2); border-radius: 14px; padding: 10px; font-size: 13px; }
 .talk div.ok { background: var(--volt); color: #000; }
+.warnt { color: var(--warn); }
 </style>
 </head>
 <body>
-<div class="wrap" id="app"></div>
+<main id="scroller"><div class="wrap" id="app"></div></main>
 <nav class="tabs" id="tabs" hidden><div class="in">
   <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M7 21l3-6 3 2v5M10 15l1-5 4 3 3-1M8 10l3-2"/></svg>Hari ni</button>
   <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="3"/></svg>Log</button>
@@ -369,7 +391,7 @@ function openRemind() {
   sheet(`<p class="eyebrow">Peringatan</p><h1 style="font-size:24px">Hari dan masa lari</h1>
     <p class="mute small" style="margin-top:6px">Pilih 3 hari, ada sehari rehat antara. Phone akan bagi notification 10 minit sebelum.</p>
     <div class="days">${HARI.map((x, k) => `<button class="${remDraft.days.includes(k) ? "sel" : ""}" data-act="rem-day" data-v="${k}">${x}</button>`).join("")}</div>
-    ${back ? `<p class="small" style="color:var(--yellow)">Ada hari berturut-turut. Cuba selang sehari supaya kaki sempat rehat.</p>` : ""}
+    ${back ? `<p class="small" style="color:var(--warn)">Ada hari berturut-turut. Cuba selang sehari supaya kaki sempat rehat.</p>` : ""}
     <label class="small mute">Masa<input type="time" id="remTime" class="field" value="${remDraft.time}" style="margin-top:4px"></label>
     <button class="btn primary" data-act="rem-ics" style="margin-top:14px" ${remDraft.days.length ? "" : "disabled"}>Tambah ke Calendar phone</button>
     <button class="btn" data-act="rem-google" ${remDraft.days.length ? "" : "disabled"}>Guna Google Calendar</button>
@@ -546,7 +568,7 @@ function showDecision(r, h) {
   const big = r.d.startsWith("lulus");
   sheet(`
     <p class="eyebrow">${label(h.t, h.w)} ditutup</p>
-    <h1 style="font-size:${big ? 32 : 26}px;${big ? "color:var(--volt)" : ""}">${r.title}</h1>
+    <h1 style="font-size:${big ? 32 : 26}px;${big ? "color:var(--good)" : ""}">${r.title}</h1>
     <p style="margin-top:8px">${r.msg}</p>
     ${r.d === "stop" ? `<div class="alert red">Sakit dada, pening atau sesak nafas yang tak reda? Telefon 999.</div>` : ""}
     ${big ? `<p class="small mute">Minggu ni, ulang ujian 20 minit untuk tengok beza dengan ujian awal.</p>` : ""}
@@ -577,12 +599,12 @@ function homeView() {
   const lastDone = state.open.filter(Boolean).map(s => s.date).sort().pop();
   const doneToday = lastDone === today();
   const nextIdx = state.open.findIndex(s => !s || !s.done);
-  let h = `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Mula Lari</small></div>`;
+  let h = `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Mula Lari</small></div>`;
   if (!storageOk) h += `<div class="alert red">Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.</div>`;
-  h += `<p class="eyebrow">${label(t, w)}</p><h1>${TAHAP[t]}</h1>${journey()}`;
   const sk = streak();
-  h += `<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">${sk ? `<span class="pill v">Streak ${sk} minggu</span>` : ""}
-    <button class="pill" data-act="remind">${state.remind ? "Peringatan: " + remSummary(state.remind) : "+ Set peringatan lari"}</button></div>`;
+  h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${TAHAP[t]}</h1>${journey()}
+    <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">Streak ${sk} minggu</span>` : ""}
+    <button class="pill" data-act="remind">${state.remind ? "Peringatan: " + remSummary(state.remind) : "+ Set peringatan lari"}</button></div></div>`;
   h += installCard("home") + inviteCard() + testCard();
   if (st.maxP >= 6) h += `<div class="alert red" style="margin-top:14px">Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
@@ -603,7 +625,7 @@ function homeView() {
       }
       h += `<div class="row" style="gap:16px;margin-top:6px"><button class="link" data-act="edit" data-i="${i}">Ubah penat</button>${o.pain != null ? `<button class="link" data-act="clear-pain" data-i="${i}">Ubah sakit</button>` : ""}<button class="link" data-act="del" data-i="${i}">Padam</button><button class="link" data-act="share-sess" data-i="${i}">Check-in</button></div>`;
     } else {
-      if (i === nextIdx && doneToday) h += `<p class="small" style="color:var(--yellow);margin:8px 0 0">Rehat sehari antara sesi. Sesi ni untuk lusa.</p>`;
+      if (i === nextIdx && doneToday) h += `<p class="small" style="color:var(--warn);margin:8px 0 0">Rehat sehari antara sesi. Sesi ni untuk lusa.</p>`;
       h += `<button class="btn ${i === nextIdx ? "primary" : "ghost"}" data-act="start" data-i="${i}" style="margin-top:12px">Mula sesi ${i + 1}</button>
         <button class="link" data-act="manual" data-i="${i}">Dah buat tanpa timer? Tanda siap</button>`;
     }
@@ -617,17 +639,17 @@ function homeView() {
   else if (st.missing) h += `<p class="small">Isi sakit esok pagi untuk semua sesi yang siap dulu.</p>`;
   else h += `<p class="small">Siapkan sekurang-kurangnya 2 sesi dulu.</p>`;
   h += `<button class="link" data-act="force-ulang">Tak sempat minggu ni? Ulang minggu</button></div>`;
-  if (CLASS_URL && !state.passes.t2) h += `<a class="card" style="display:block;color:inherit;text-decoration:none;border:1px solid var(--volt)" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">Kelas online SihatLab</p><h3>Nak buat dengan coach dan kawan-kawan?</h3><p class="mute small">8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →</p></a>`;
+  if (CLASS_URL && !state.passes.t2) h += `<a class="card" style="display:block;color:inherit;text-decoration:none;box-shadow:0 0 0 2px var(--ink)" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">Kelas online SihatLab</p><h3>Nak buat dengan coach dan kawan-kawan?</h3><p class="mute small">8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →</p></a>`;
   return h;
 }
 
 function logView() {
-  let h = `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Log</small></div><h1>Log sesi</h1>`;
+  let h = `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Log</small></div><h1>Log sesi</h1>`;
   if (state.passes.t1) h += `<div class="badge" style="margin-top:16px"><div class="dot">1</div><div><b>Lulus Tahap 1</b><br><span class="mute small">${nice(state.passes.t1)} · jalan laju 30 minit</span></div></div>`;
   if (state.passes.t2) h += `<div class="badge"><div class="dot">2</div><div><b>Lulus Tahap 2</b><br><span class="mute small">${nice(state.passes.t2)} · lari 30 minit non-stop</span></div></div>`;
   const sk = streak();
   h += `<h2>Konsisten</h2><div class="card"><div class="row between"><b>${sk ? `Streak ${sk} minggu` : "Belum ada streak"}</b><span class="mute small">2+ sesi seminggu</span></div>
-    ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> sesi</span><span><span class="pill" style="padding:0 6px;background:#fff">&nbsp;</span> ujian</span><span>8 minggu lepas</span></div></div>`;
+    ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> sesi</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ujian</span><span>8 minggu lepas</span></div></div>`;
   h += `<h2>Ujian 20 minit</h2>`;
   if (state.tests.length) {
     const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
@@ -653,7 +675,7 @@ function logView() {
 }
 
 function infoView() {
-  return `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Panduan</small></div>
+  return `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Panduan</small></div>
   <h1>Panduan ringkas</h1>
   <div class="alert red" style="margin-top:16px">Berhenti serta-merta kalau sakit atau tekanan di dada, pening atau rasa nak pitam, sesak nafas yang tak reda, jantung berdebar tak sekata. Sakit dada tak hilang dalam 5 minit? Telefon 999.</div>
   <h2>Ujian bercakap</h2>
@@ -682,7 +704,7 @@ function infoView() {
     <p class="small mute">Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.</p>
     <button class="btn ghost" data-act="export">Simpan backup</button>
     <label class="btn ghost" style="cursor:pointer">Ambil backup<input type="file" accept="application/json,.json" data-act="import" hidden></label>
-    <button class="btn ghost" data-act="reset" style="color:var(--red)">${resetArmed ? "Tekan sekali lagi untuk padam semua" : "Padam semua & mula semula"}</button>
+    <button class="btn ghost" data-act="reset" style="color:var(--red-ink)">${resetArmed ? "Tekan sekali lagi untuk padam semua" : "Padam semua & mula semula"}</button>
   </div>
   <p class="mute small" style="margin-top:18px">Pelan ikut NHS Couch to 5K dan garis panduan WHO. Coach Abang Dollah · World Athletics Level 1 · Sains Sukan Tahap 1 (AKK). Panduan umum, bukan nasihat perubatan.</p>`;
 }
@@ -698,8 +720,8 @@ function calcBmi(h, w) {
 function bmiNote(b) {
   if (b == null) return `<span class="mute">Isi tinggi dan berat, BMI keluar sendiri.</span>`;
   return b >= 30
-    ? `BMI kau <b style="color:var(--yellow)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`
-    : `BMI kau <b style="color:var(--volt)">${b}</b>. Bawah 30, ikut pelan biasa.`;
+    ? `BMI kau <b style="color:var(--warn)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`
+    : `BMI kau <b style="color:var(--good)">${b}</b>. Bawah 30, ikut pelan biasa.`;
 }
 function bmiBox(scope, h, w) {
   return `<div class="bmi"><label><span class="small mute">Tinggi (cm)</span><input type="text" inputmode="decimal" placeholder="170" value="${String(h || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="h"></label>
@@ -716,7 +738,7 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instal
 window.addEventListener("appinstalled", () => { installEvt = null; state.installHide = true; save(); render(); });
 const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`;
 function installSteps() {
-  if (inApp) return `<p class="small" style="color:var(--yellow);margin:10px 0 0">Kau buka link ni dalam app lain (Threads, Instagram, TikTok atau Facebook). Tekan ••• kat atas, pilih <b>Open in browser</b> (Safari atau Chrome), lepas tu ikut langkah ni.</p>`;
+  if (inApp) return `<p class="small" style="color:var(--warn);margin:10px 0 0">Kau buka link ni dalam app lain (Threads, Instagram, TikTok atau Facebook). Tekan ••• kat atas, pilih <b>Open in browser</b> (Safari atau Chrome), lepas tu ikut langkah ni.</p>`;
   if (installOS === "ios") return `<ol class="steps">
       <li><span>Buka link ni dalam <b>Safari</b>.</span></li>
       <li><span>Tekan butang Share ${SHARE_ICON} (kotak dengan anak panah ke atas). Tak nampak? Tekan <b>•••</b> dulu.</span></li>
@@ -741,7 +763,7 @@ function installCard(where) {
 }
 let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" };
 function onboardView() {
-  return `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Mula Lari</small></div>
+  return `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Mula Lari</small></div>
   <p class="eyebrow">Selamat datang</p><h1>Dari kosong ke 30 minit lari.</h1>
   <p class="mute" style="margin-top:10px">Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.</p>
   ${installCard("onb")}
@@ -759,7 +781,7 @@ function onboardView() {
   ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? "Kau mula di Tahap 2: lari-jalan." : "Kau mula di Tahap 1: jalan laju, 2–4 minggu."}</p>`}
   <h2>3. BMI</h2>
   <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">Tak nak isi pun tak apa. Data ni simpan dalam phone je.</p></div>
-  <p class="small" id="bmi-onb-warn" style="color:var(--yellow)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.</p>
+  <p class="small" id="bmi-onb-warn" style="color:var(--warn)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.</p>
   <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? "Mula" : "Jawab soalan atas dulu"}</button>
   <p class="mute small" style="margin-top:14px">Data simpan dalam phone ni je.</p>`;
 }
@@ -777,7 +799,7 @@ function render() {
 /* ---------- Tekan ---------- */
 document.addEventListener("click", e => {
   const tb = e.target.closest("[data-tab]");
-  if (tb) { tab = tb.dataset.tab; resetArmed = false; render(); window.scrollTo(0, 0); return; }
+  if (tb) { tab = tb.dataset.tab; resetArmed = false; render(); document.getElementById("scroller").scrollTop = 0; return; }
   const el = e.target.closest("[data-act]");
   if (!el) return;
   const act = el.dataset.act, i = +el.dataset.i, v = +el.dataset.v;
@@ -829,7 +851,7 @@ document.addEventListener("click", e => {
       state.tests.push(rec); state.testDue = false;
       const slot = state.open.findIndex(s => !s || !s.done);
       if (cnt && cnt.checked && slot >= 0) state.open[slot] = { done: true, date: rec.date, rpe: pendingRpe, pain: null, test: true };
-      save(); closeSheet(); tab = "log"; render(); window.scrollTo(0, 0); break;
+      save(); closeSheet(); tab = "log"; render(); document.getElementById("scroller").scrollTop = 0; break;
     }
     case "pain": state.open[i].pain = v; save(); render(); break;
     case "clear-pain": state.open[i].pain = null; save(); render(); break;
