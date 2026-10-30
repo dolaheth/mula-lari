@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -33,7 +33,6 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .wrap { max-width: 480px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top)) 16px 28px; }
 .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .top img { height: 22px; display: block; }
-.top small { color: var(--mute); font-size: 13px; font-weight: 600; }
 h1 { font-size: 34px; font-weight: 800; letter-spacing: -1.4px; line-height: 1.05; }
 h2 { font-size: 22px; font-weight: 800; letter-spacing: -.6px; margin: 30px 0 12px; }
 h3 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; line-height: 1.25; margin: 0 0 4px; }
@@ -155,41 +154,50 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .talk div { background: var(--card2); border-radius: 14px; padding: 10px; font-size: 13px; }
 .talk div.ok { background: var(--volt); color: #000; }
 .warnt { color: var(--warn); }
+/* language switch, same as the website nav */
+.lang { display: inline-flex; background: #E8E8ED; border-radius: 999px; padding: 3px; flex: none; }
+.lang button { padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--mute); }
+.lang button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+select.field { -webkit-appearance: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236E6E73' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center; padding-right: 36px; font-size: 16px; }
 </style>
 </head>
 <body>
 <main id="scroller"><div class="wrap" id="app"></div></main>
 <nav class="tabs" id="tabs" hidden><div class="in">
-  <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M7 21l3-6 3 2v5M10 15l1-5 4 3 3-1M8 10l3-2"/></svg>Hari ni</button>
-  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="3"/></svg>Log</button>
-  <button data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Panduan</button>
+  <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M7 21l3-6 3 2v5M10 15l1-5 4 3 3-1M8 10l3-2"/></svg><span></span></button>
+  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="3"/></svg><span></span></button>
+  <button data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span></span></button>
 </div></nav>
 <div id="layer"></div>
 
 <script>
 "use strict";
-// Link kelas / website. Isi bila dah ada, contoh "https://sihatlab.my/daftar". Kosong = sorok.
+// Class / website link. Fill in when ready, e.g. "https://sihatlab.my/daftar". Empty = hidden.
 const CLASS_URL = "";
-// Kalau CLASS_URL kosong, kad ajak kelas suruh DM kat Threads.
+// When CLASS_URL is empty, the class card asks people to DM on Threads.
 const THREADS_URL = "https://www.threads.net/@abdullahadnan___";
 
-/* ---------- Pelan (sama dengan Pelan Mula Lari PDF) ---------- */
-const MIN = 60;
-const seg = (k, m, label) => ({ k, sec: Math.round(m * MIN), label });
-const R = m => seg("r", m, "Lari");
-const W = m => seg("w", m, "Jalan");
-const rep = (arr, n) => Array.from({ length: n }, () => arr).flat();
-const WARM = seg("wu", 5, "Panaskan badan");
-const COOL = seg("cd", 5, "Bertenang");
+/* ---------- Language: English first, BM on the switch ---------- */
+const L = (en, ms) => (state && state.lang === "ms" ? ms : en);
+const tx = p => (Array.isArray(p) ? L(p[0], p[1]) : p);
 
-/* Gerakan pemanasan, 20 saat setiap satu (2 minit) */
+/* ---------- Plan (same as the Pelan Mula Lari PDF) ---------- */
+const MIN = 60;
+const seg = (k, m) => ({ k, sec: Math.round(m * MIN) });
+const R = m => seg("r", m);
+const W = m => seg("w", m);
+const rep = (arr, n) => Array.from({ length: n }, () => arr).flat();
+const WARM = seg("wu", 5);
+const COOL = seg("cd", 5);
+
+/* Warm-up moves, 20 seconds each (2 minutes) */
 const MOVES = [
-  ["Jalan setempat", "Angkat lutut sikit, hayun tangan."],
-  ["Ayun kaki kiri", "Pegang dinding. Ayun depan-belakang, santai, tak payah tinggi."],
-  ["Ayun kaki kanan", "Tukar kaki. Ayun depan-belakang, santai."],
-  ["Ayun kaki ke tepi", "Kiri dulu, tukar kaki separuh masa."],
-  ["Pusing buku lali", "Hujung kaki atas lantai, pusing perlahan. Tukar kaki."],
-  ["Jengket", "Naik hujung kaki, turun perlahan. Ulang."],
+  [["March on the spot", "Jalan setempat"], ["Lift your knees a little, swing your arms.", "Angkat lutut sikit, hayun tangan."]],
+  [["Left leg swings", "Ayun kaki kiri"], ["Hold a wall. Swing forward and back, relaxed, not high.", "Pegang dinding. Ayun depan-belakang, santai, tak payah tinggi."]],
+  [["Right leg swings", "Ayun kaki kanan"], ["Switch legs. Swing forward and back, relaxed.", "Tukar kaki. Ayun depan-belakang, santai."]],
+  [["Side leg swings", "Ayun kaki ke tepi"], ["Left leg first, switch halfway.", "Kiri dulu, tukar kaki separuh masa."]],
+  [["Ankle circles", "Pusing buku lali"], ["Toes on the ground, circle slowly. Switch feet.", "Hujung kaki atas lantai, pusing perlahan. Tukar kaki."]],
+  [["Calf raises", "Jengket"], ["Rise onto your toes, lower slowly. Repeat.", "Naik hujung kaki, turun perlahan. Ulang."]],
 ].map(([label, desc]) => ({ k: "mv", sec: 20, label, desc }));
 function withMoves(segs) {
   if (!state.moves) return segs;
@@ -197,53 +205,52 @@ function withMoves(segs) {
 }
 const T1_MIN = { 1: 20, 2: 25, 3: 30, 4: 30 };
 const T2 = {
-  1: { d: "Lari 1, jalan 1.5 · 8 kali lari", c: [...rep([R(1), W(1.5)], 7), R(1)] },
-  2: { d: "Lari 1.5, jalan 2 · 6 kali lari", c: [...rep([R(1.5), W(2)], 5), R(1.5)] },
-  3: { d: "Lari 1.5, jalan 1.5, lari 3, jalan 3 · 2 set", c: [R(1.5), W(1.5), R(3), W(3), R(1.5), W(1.5), R(3)] },
-  4: { d: "Lari 3, jalan 1.5, lari 5, jalan 2.5, lari 3, jalan 1.5, lari 5", c: [R(3), W(1.5), R(5), W(2.5), R(3), W(1.5), R(5)] },
+  1: { d: ["Run 1, walk 1.5 · 8 runs", "Lari 1, jalan 1.5 · 8 kali lari"], c: [...rep([R(1), W(1.5)], 7), R(1)] },
+  2: { d: ["Run 1.5, walk 2 · 6 runs", "Lari 1.5, jalan 2 · 6 kali lari"], c: [...rep([R(1.5), W(2)], 5), R(1.5)] },
+  3: { d: ["Run 1.5, walk 1.5, run 3, walk 3 · 2 sets", "Lari 1.5, jalan 1.5, lari 3, jalan 3 · 2 set"], c: [R(1.5), W(1.5), R(3), W(3), R(1.5), W(1.5), R(3)] },
+  4: { d: ["Run 3, walk 1.5, run 5, walk 2.5, run 3, walk 1.5, run 5", "Lari 3, jalan 1.5, lari 5, jalan 2.5, lari 3, jalan 1.5, lari 5"], c: [R(3), W(1.5), R(5), W(2.5), R(3), W(1.5), R(5)] },
   5: { s: [
-    { d: "Lari 5, jalan 3 · 3 kali lari", c: [R(5), W(3), R(5), W(3), R(5)] },
-    { d: "Lari 8, jalan 5, lari 8", c: [R(8), W(5), R(8)] },
-    { d: "Lari 20 non-stop", c: [R(20)] } ] },
+    { d: ["Run 5, walk 3 · 3 runs", "Lari 5, jalan 3 · 3 kali lari"], c: [R(5), W(3), R(5), W(3), R(5)] },
+    { d: ["Run 8, walk 5, run 8", "Lari 8, jalan 5, lari 8"], c: [R(8), W(5), R(8)] },
+    { d: ["Run 20 non-stop", "Lari 20 non-stop"], c: [R(20)] } ] },
   6: { s: [
-    { d: "Lari 5, jalan 3, lari 8, jalan 3, lari 5", c: [R(5), W(3), R(8), W(3), R(5)] },
-    { d: "Lari 10, jalan 3, lari 10", c: [R(10), W(3), R(10)] },
-    { d: "Lari 25 non-stop", c: [R(25)] } ] },
-  7: { d: "Lari 25 non-stop", c: [R(25)] },
-  8: { d: "Lari 28 non-stop", c: [R(28)] },
-  9: { d: "Lari 30 non-stop", c: [R(30)] },
+    { d: ["Run 5, walk 3, run 8, walk 3, run 5", "Lari 5, jalan 3, lari 8, jalan 3, lari 5"], c: [R(5), W(3), R(8), W(3), R(5)] },
+    { d: ["Run 10, walk 3, run 10", "Lari 10, jalan 3, lari 10"], c: [R(10), W(3), R(10)] },
+    { d: ["Run 25 non-stop", "Lari 25 non-stop"], c: [R(25)] } ] },
+  7: { d: ["Run 25 non-stop", "Lari 25 non-stop"], c: [R(25)] },
+  8: { d: ["Run 28 non-stop", "Lari 28 non-stop"], c: [R(28)] },
+  9: { d: ["Run 30 non-stop", "Lari 30 non-stop"], c: [R(30)] },
 };
-const TAHAP = { 1: "Jalan laju", 2: "Lari-jalan", 3: "Lari 30 minit" };
+const TAHAP = { 1: ["Brisk walking", "Jalan laju"], 2: ["Run-walk", "Lari-jalan"], 3: ["Run 30 minutes", "Lari 30 minit"] };
 
 function walkSession(m) {
-  return { d: `Jalan laju ${m} minit`, sub: "Ikut ujian bercakap: boleh cakap ayat penuh.", segs: [seg("w", m, "Jalan laju")] };
+  return { d: L(`Brisk walk ${m} minutes`, `Jalan laju ${m} minit`), sub: L("Use the talk test: you can speak in full sentences.", "Ikut ujian bercakap: boleh cakap ayat penuh."), segs: [seg("w", m)] };
 }
 function getSession(t, w, i) {
   const s = baseSession(t, w, i);
   return { ...s, segs: withMoves(s.segs) };
 }
 function testSession() {
-  return { d: "Ujian 20 minit", segs: withMoves([{ k: "t", sec: 20 * MIN, label: "Ujian" }]) };
+  return { d: L("20-minute test", "Ujian 20 minit"), segs: withMoves([{ k: "t", sec: 20 * MIN }]) };
 }
 function baseSession(t, w, i) {
   if (t === 1) return walkSession(T1_MIN[w]);
-  if (t === 3) return { d: "Lari 30 minit non-stop", sub: "5 minit panaskan badan, 5 minit bertenang.", segs: [WARM, R(30), COOL] };
+  if (t === 3) return { d: L("Run 30 minutes non-stop", "Lari 30 minit non-stop"), sub: L("5 minutes warm-up walk, 5 minutes cool-down walk.", "5 minit panaskan badan, 5 minit bertenang."), segs: [WARM, R(30), COOL] };
   if (state.bmi30 && w === 1 && i === 2) {
     const s = walkSession(30);
-    s.sub = "BMI 30+: minggu pertama Tahap 2, sesi 3 jalan laju je supaya jumlah lari kekal bawah 3 km.";
+    s.sub = L("BMI 30+: in the first week of Stage 2, session 3 is a brisk walk so your total running stays under 3 km.", "BMI 30+: minggu pertama Tahap 2, sesi 3 jalan laju je supaya jumlah lari kekal bawah 3 km.");
     return s;
   }
   const wk = T2[w];
   const s = wk.s ? wk.s[i] : wk;
-  return { d: s.d, sub: "5 minit jalan laju dulu, 5 minit jalan bertenang di hujung.", segs: [WARM, ...s.c, COOL] };
+  return { d: tx(s.d), sub: L("Times in minutes. 5 min brisk walk first, 5 min easy walk at the end.", "Masa dalam minit. 5 minit jalan laju dulu, 5 minit jalan bertenang di hujung."), segs: [WARM, ...s.c, COOL] };
 }
 const totalMin = segs => Math.round(segs.reduce((a, s) => a + s.sec, 0) / MIN);
-const runMin = segs => segs.filter(s => s.k === "r").reduce((a, s) => a + s.sec, 0) / MIN;
 
-/* ---------- Simpan dalam phone ---------- */
+/* ---------- Saved on the phone only ---------- */
 const KEY = "sihatlab-mula-lari-v1";
 let storageOk = true;
-const fresh = () => ({ v: 1, started: false, bmi30: false, sound: true, voice: true, cur: { t: 1, w: 1 }, open: [null, null, null], history: [], passes: {}, moves: true, remind: null, tests: [], testDue: false, testSkip: false });
+const fresh = () => ({ v: 1, lang: "en", started: false, bmi30: false, sound: true, voice: true, cur: { t: 1, w: 1 }, open: [null, null, null], history: [], passes: {}, moves: true, remind: null, tests: [], testDue: false, testSkip: false });
 function load() {
   try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(fresh(), JSON.parse(raw)); }
   catch (e) { storageOk = false; }
@@ -253,12 +260,12 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); storag
 let state = load();
 let tab = "home";
 
-/* ---------- Tarikh ---------- */
+/* ---------- Dates ---------- */
 function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
-const BULAN = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
-function nice(ds) { if (!ds) return ""; const [y, m, d] = ds.split("-").map(Number); return `${d} ${BULAN[m - 1]}`; }
+const MON = { en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ms: ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"] };
+function nice(ds) { if (!ds) return ""; const [y, m, d] = ds.split("-").map(Number); return `${d} ${MON[state.lang === "ms" ? "ms" : "en"][m - 1]}`; }
 
-/* ---------- Keputusan minggu ---------- */
+/* ---------- Weekly decision ---------- */
 function weekStats(open) {
   const done = open.filter(s => s && s.done);
   const pains = done.map(s => s.pain);
@@ -269,23 +276,23 @@ function weekStats(open) {
 function decide() {
   const { t, w } = state.cur;
   const { n, maxP } = weekStats(state.open);
-  if (maxP >= 6) return { d: "stop", next: { t, w }, title: "Berhenti dulu", msg: "Ada sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Bila dah ok, ulang minggu ni." };
-  if (n < 2) return { d: "ulang", next: { t, w }, title: `Ulang minggu ${w}`, msg: "Kurang dari 2 sesi siap. Takpe, ulang minggu ni. Ulang itu normal." };
-  if (maxP >= 3) return { d: "ulang", next: { t, w }, title: `Ulang minggu ${w}`, msg: `Sakit ${maxP}/10 pada pagi esok. Ulang minggu ni dulu sebelum naik.` };
+  if (maxP >= 6) return { d: "stop", next: { t, w }, title: L("Stop for now", "Berhenti dulu"), msg: L("You had pain of 6/10 or more. Stop running and see a physio. When you're OK, repeat this week.", "Ada sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Bila dah ok, ulang minggu ni.") };
+  if (n < 2) return { d: "ulang", next: { t, w }, title: L(`Repeat week ${w}`, `Ulang minggu ${w}`), msg: L("Fewer than 2 sessions done. That's fine, repeat this week. Repeating is normal.", "Kurang dari 2 sesi siap. Takpe, ulang minggu ni. Ulang itu normal.") };
+  if (maxP >= 3) return { d: "ulang", next: { t, w }, title: L(`Repeat week ${w}`, `Ulang minggu ${w}`), msg: L(`Pain of ${maxP}/10 the next morning. Repeat this week before moving up.`, `Sakit ${maxP}/10 pada pagi esok. Ulang minggu ni dulu sebelum naik.`) };
   if (t === 1) {
-    if (w >= 3 && n === 3) return { d: "lulus1", next: { t: 2, w: 1 }, title: "Lulus Tahap 1!", msg: "Jalan laju 30 minit, 3 kali seminggu, tanpa sakit. Minggu depan mula Tahap 2: lari-jalan." };
-    if (w === 4) return { d: "ulang", next: { t, w }, title: "Ulang minggu 4", msg: "Nak lulus Tahap 1 kena siap 3 sesi 30 minit dalam seminggu. Cuba lagi minggu ni." };
-    return { d: "naik", next: { t, w: w + 1 }, title: `Naik ke minggu ${w + 1}`, msg: "Bagus. Teruskan ikut pelan." };
+    if (w >= 3 && n === 3) return { d: "lulus1", next: { t: 2, w: 1 }, title: L("Stage 1 passed!", "Lulus Tahap 1!"), msg: L("30 minutes of brisk walking, 3 times a week, with no pain. Next week you start Stage 2: run-walk.", "Jalan laju 30 minit, 3 kali seminggu, tanpa sakit. Minggu depan mula Tahap 2: lari-jalan.") };
+    if (w === 4) return { d: "ulang", next: { t, w }, title: L("Repeat week 4", "Ulang minggu 4"), msg: L("To pass Stage 1 you need 3 sessions of 30 minutes in one week. Try again this week.", "Nak lulus Tahap 1 kena siap 3 sesi 30 minit dalam seminggu. Cuba lagi minggu ni.") };
+    return { d: "naik", next: { t, w: w + 1 }, title: L(`On to week ${w + 1}`, `Naik ke minggu ${w + 1}`), msg: L("Nice. Keep following the plan.", "Bagus. Teruskan ikut pelan.") };
   }
   if (t === 2) {
-    if (w === 9 && n === 3) return { d: "lulus2", next: { t: 3, w: 1 }, title: "Lulus Tahap 2!", msg: "Lari 30 minit non-stop. Itu misi SihatLab: 30 minit, tanpa injury." };
-    if (w === 9) return { d: "ulang", next: { t, w }, title: "Ulang minggu 9", msg: "Nak lulus Tahap 2 kena siap 3 sesi lari 30 minit dalam seminggu. Sikit lagi!" };
-    return { d: "naik", next: { t, w: w + 1 }, title: `Naik ke minggu ${w + 1}`, msg: "Bagus. Bahagian lari makin panjang minggu depan." };
+    if (w === 9 && n === 3) return { d: "lulus2", next: { t: 3, w: 1 }, title: L("Stage 2 passed!", "Lulus Tahap 2!"), msg: L("30 minutes of running, non-stop. That's the SihatLab goal: 30 minutes, no injuries.", "Lari 30 minit non-stop. Itu misi SihatLab: 30 minit, tanpa injury.") };
+    if (w === 9) return { d: "ulang", next: { t, w }, title: L("Repeat week 9", "Ulang minggu 9"), msg: L("To pass Stage 2 you need 3 runs of 30 minutes in one week. Almost there!", "Nak lulus Tahap 2 kena siap 3 sesi lari 30 minit dalam seminggu. Sikit lagi!") };
+    return { d: "naik", next: { t, w: w + 1 }, title: L(`On to week ${w + 1}`, `Naik ke minggu ${w + 1}`), msg: L("Nice. The running parts get longer next week.", "Bagus. Bahagian lari makin panjang minggu depan.") };
   }
-  return { d: "naik", next: { t, w: w + 1 }, title: "Kekal 30 minit", msg: "Kekalkan 3 kali seminggu, 30 minit. Lepas 2–4 minggu, baru tambah apa-apa." };
+  return { d: "naik", next: { t, w: w + 1 }, title: L("Keep it at 30 minutes", "Kekal 30 minit"), msg: L("Keep going 3 times a week, 30 minutes. After 2 to 4 weeks, then add something.", "Kekalkan 3 kali seminggu, 30 minit. Lepas 2–4 minggu, baru tambah apa-apa.") };
 }
 function closeWeek(forceUlang) {
-  const r = forceUlang ? { d: "ulang", next: { ...state.cur }, title: `Ulang minggu ${state.cur.w}`, msg: "Takpe. Ulang minggu ni bila dah sedia." } : decide();
+  const r = forceUlang ? { d: "ulang", next: { ...state.cur }, title: L(`Repeat week ${state.cur.w}`, `Ulang minggu ${state.cur.w}`), msg: L("No problem. Do this week again when you're ready.", "Takpe. Ulang minggu ni bila dah sedia.") } : decide();
   state.history.push({ t: state.cur.t, w: state.cur.w, sessions: state.open, d: r.d, date: today() });
   if (r.d === "lulus1") { state.passes.t1 = today(); state.testDue = true; }
   if (r.d === "lulus2") { state.passes.t2 = today(); state.testDue = true; }
@@ -294,35 +301,37 @@ function closeWeek(forceUlang) {
   showDecision(r, state.history[state.history.length - 1]);
 }
 
-/* ---------- Kongsi ---------- */
-const label = (t, w) => `Tahap ${t} · Minggu ${w}`;
+/* ---------- Share ---------- */
+const label = (t, w) => L(`Stage ${t} · Week ${w}`, `Tahap ${t} · Minggu ${w}`);
+const DEC = () => ({ naik: L("Moving up next week", "Naik minggu depan"), ulang: L("Repeat the week", "Ulang minggu"), stop: L("Stop, see a physio", "Berhenti, jumpa physio"), lulus1: L("STAGE 1 PASSED", "LULUS TAHAP 1"), lulus2: L("STAGE 2 PASSED", "LULUS TAHAP 2") });
 function weekText(h) {
   const lines = [`SihatLab Mula Lari · ${label(h.t, h.w)}`];
-  h.sessions.forEach((s, i) => lines.push(s && s.done ? `Sesi ${i + 1}: siap ✓ · penat ${s.rpe ?? "-"}/10 · sakit esok ${s.pain ?? "-"}/10` : `Sesi ${i + 1}: -`));
-  const D = { naik: "Naik minggu depan", ulang: "Ulang minggu", stop: "Berhenti, jumpa physio", lulus1: "LULUS TAHAP 1", lulus2: "LULUS TAHAP 2" };
-  lines.push(`Keputusan: ${D[h.d] || h.d}`);
+  h.sessions.forEach((s, i) => lines.push(s && s.done
+    ? L(`Session ${i + 1}: done ✓ · effort ${s.rpe ?? "-"}/10 · pain next day ${s.pain ?? "-"}/10`, `Sesi ${i + 1}: siap ✓ · penat ${s.rpe ?? "-"}/10 · sakit esok ${s.pain ?? "-"}/10`)
+    : L(`Session ${i + 1}: -`, `Sesi ${i + 1}: -`)));
+  lines.push(L("Result: ", "Keputusan: ") + (DEC()[h.d] || h.d));
   return lines.join("\n");
 }
 function sessText(i) {
   const s = getSession(state.cur.t, state.cur.w, i), o = state.open[i] || {};
   const n = weekStats(state.open).n, k = streak();
-  return [`SihatLab Mula Lari ✓`, `${label(state.cur.t, state.cur.w)} · Sesi ${i + 1} siap`, `${s.d} (±${totalMin(s.segs)} minit)`,
-    `Penat ${o.rpe ?? "-"}/10`, `Minggu ni: ${n}/3 sesi${k ? ` · streak ${k} minggu` : ""}`].join("\n");
+  return [`SihatLab Mula Lari ✓`, `${label(state.cur.t, state.cur.w)} · ${L(`Session ${i + 1} done`, `Sesi ${i + 1} siap`)}`, `${s.d} (±${totalMin(s.segs)} ${L("min", "minit")})`,
+    L(`Effort ${o.rpe ?? "-"}/10`, `Penat ${o.rpe ?? "-"}/10`), L(`This week: ${n}/3 sessions`, `Minggu ni: ${n}/3 sesi`) + (k ? L(` · ${k}-week streak`, ` · streak ${k} minggu`) : "")].join("\n");
 }
 function testsText() {
   const a = state.tests[0], b = state.tests[state.tests.length - 1];
-  const L = [`SihatLab Mula Lari · Ujian 20 minit`];
+  const out = [`SihatLab Mula Lari · ${L("20-minute test", "Ujian 20 minit")}`];
   if (state.tests.length > 1) {
-    L.push(`Awal (${nice(a.date)}) → terkini (${nice(b.date)})`);
-    if (a.km != null && b.km != null) L.push(`Jarak: ${a.km} km → ${b.km} km`);
-    if (a.run != null && b.run != null) L.push(`Lari non-stop: ${a.run} → ${b.run} minit`);
-    L.push(`Penat: ${a.rpe ?? "-"} → ${b.rpe ?? "-"}/10`);
-  } else L.push(`Ujian awal ${nice(a.date)}: ${a.km != null ? a.km + " km" : "-"} · lari non-stop ${a.run ?? "-"} minit`);
-  return L.join("\n");
+    out.push(L(`First (${nice(a.date)}) → latest (${nice(b.date)})`, `Awal (${nice(a.date)}) → terkini (${nice(b.date)})`));
+    if (a.km != null && b.km != null) out.push(L(`Distance: ${a.km} km → ${b.km} km`, `Jarak: ${a.km} km → ${b.km} km`));
+    if (a.run != null && b.run != null) out.push(L(`Longest non-stop run: ${a.run} → ${b.run} min`, `Lari non-stop: ${a.run} → ${b.run} minit`));
+    out.push(L(`Effort: ${a.rpe ?? "-"} → ${b.rpe ?? "-"}/10`, `Penat: ${a.rpe ?? "-"} → ${b.rpe ?? "-"}/10`));
+  } else out.push(L(`First test ${nice(a.date)}: ${a.km != null ? a.km + " km" : "-"} · longest non-stop run ${a.run ?? "-"} min`, `Ujian awal ${nice(a.date)}: ${a.km != null ? a.km + " km" : "-"} · lari non-stop ${a.run ?? "-"} minit`));
+  return out.join("\n");
 }
 
-/* ---------- Streak dan kalendar ---------- */
-const pd = ds => { const [y, m, d] = ds.split("-").map(Number); return new Date(y, m - 1, d); };
+/* ---------- Streak and calendar ---------- */
+const pd = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 const ds = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 function monday(d) { const x = new Date(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
 function activity() {
@@ -345,7 +354,8 @@ function streak() {
 function calendarGrid(weeks = 8) {
   const m = activity(), t = today();
   const start = monday(new Date()); start.setDate(start.getDate() - 7 * (weeks - 1));
-  let h = `<div class="cal">${["I", "S", "R", "K", "J", "S", "A"].map(x => `<b>${x}</b>`).join("")}`;
+  const heads = L("M T W T F S S", "I S R K J S A").split(" ");
+  let h = `<div class="cal">${heads.map(x => `<b>${x}</b>`).join("")}`;
   for (let i = 0; i < weeks * 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const k = ds(d);
@@ -354,9 +364,9 @@ function calendarGrid(weeks = 8) {
   return h + `</div>`;
 }
 
-/* ---------- Peringatan (Calendar phone) ---------- */
+/* ---------- Reminders (phone calendar) ---------- */
 const BYDAY = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
-const HARI = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
+const DAYS = () => L("Mon Tue Wed Thu Fri Sat Sun", "Isn Sel Rab Kha Jum Sab Ahd").split(" ");
 let remDraft = null;
 function firstStart(r) {
   const [hh, mm] = r.time.split(":").map(Number), now = new Date();
@@ -367,85 +377,87 @@ function firstStart(r) {
   return now;
 }
 const icsT = d => `${ds(d).replace(/-/g, "")}T${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}00`;
+const remTitle = () => L("SihatLab run (Mula Lari)", "Lari SihatLab (Mula Lari)");
+const remDetails = () => L("Open the Mula Lari app and tap Start session.", "Buka app Mula Lari dan tekan Mula sesi.");
 function remIcs(r) {
   const a = firstStart(r), b = new Date(a.getTime() + 40 * 60000);
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
-  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//SihatLab//Mula Lari//MS", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//SihatLab//Mula Lari//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
     `UID:mula-lari-${Date.now()}@sihatlab`, `DTSTAMP:${stamp}`, `DTSTART:${icsT(a)}`, `DTEND:${icsT(b)}`,
     `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map(d => BYDAY[d]).join(",")}`,
-    "SUMMARY:Lari SihatLab (Mula Lari)", "DESCRIPTION:Buka app Mula Lari dan tekan Mula sesi. Pakai kasut\\, bawa air.",
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Masa untuk lari", "TRIGGER:-PT10M", "END:VALARM",
+    `SUMMARY:${remTitle()}`, `DESCRIPTION:${remDetails()}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${L("Time to run", "Masa untuk lari")}`, "TRIGGER:-PT10M", "END:VALARM",
     "END:VEVENT", "END:VCALENDAR"].join("\r\n");
 }
 function remGoogle(r) {
   const a = firstStart(r), b = new Date(a.getTime() + 40 * 60000);
-  const q = new URLSearchParams({ action: "TEMPLATE", text: "Lari SihatLab (Mula Lari)", dates: `${icsT(a)}/${icsT(b)}`,
-    details: "Buka app Mula Lari dan tekan Mula sesi.", recur: `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map(d => BYDAY[d]).join(",")}`, ctz: "Asia/Kuala_Lumpur" });
+  const q = new URLSearchParams({ action: "TEMPLATE", text: remTitle(), dates: `${icsT(a)}/${icsT(b)}`,
+    details: remDetails(), recur: `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map(d => BYDAY[d]).join(",")}`, ctz: "Asia/Kuala_Lumpur" });
   return "https://calendar.google.com/calendar/render?" + q.toString();
 }
-function remSummary(r) { return `${r.days.map(d => HARI[d]).join(", ")} · ${r.time}`; }
+function remSummary(r) { const D = DAYS(); return `${r.days.map(d => D[d]).join(", ")} · ${r.time}`; }
 function openRemind() {
   remDraft = remDraft || (state.remind ? { days: [...state.remind.days], time: state.remind.time } : { days: [0, 2, 5], time: "06:30" });
   const d = [...remDraft.days].sort((x, y) => x - y);
   const back = d.some((x, k) => k && x - d[k - 1] === 1) || (d.includes(0) && d.includes(6));
-  sheet(`<p class="eyebrow">Peringatan</p><h1 style="font-size:24px">Hari dan masa lari</h1>
-    <p class="mute small" style="margin-top:6px">Pilih 3 hari, ada sehari rehat antara. Phone akan bagi notification 10 minit sebelum.</p>
-    <div class="days">${HARI.map((x, k) => `<button class="${remDraft.days.includes(k) ? "sel" : ""}" data-act="rem-day" data-v="${k}">${x}</button>`).join("")}</div>
-    ${back ? `<p class="small" style="color:var(--warn)">Ada hari berturut-turut. Cuba selang sehari supaya kaki sempat rehat.</p>` : ""}
-    <label class="small mute">Masa<input type="time" id="remTime" class="field" value="${remDraft.time}" style="margin-top:4px"></label>
-    <button class="btn primary" data-act="rem-ics" style="margin-top:14px" ${remDraft.days.length ? "" : "disabled"}>Tambah ke Calendar phone</button>
-    <button class="btn" data-act="rem-google" ${remDraft.days.length ? "" : "disabled"}>Guna Google Calendar</button>
-    <button class="btn ghost" data-act="sheet-close">Batal</button>
-    <p class="mute small" style="margin-top:10px">iPhone: tekan butang pertama, lepas tu "Add All". Android: guna Google Calendar.</p>`);
+  sheet(`<p class="eyebrow">${L("Reminders", "Peringatan")}</p><h1 style="font-size:26px">${L("Your running days", "Hari dan masa lari")}</h1>
+    <p class="mute small" style="margin-top:6px">${L("Pick 3 days with a rest day in between. Your phone will notify you 10 minutes before.", "Pilih 3 hari, ada sehari rehat antara. Phone akan bagi notification 10 minit sebelum.")}</p>
+    <div class="days">${DAYS().map((x, k) => `<button class="${remDraft.days.includes(k) ? "sel" : ""}" data-act="rem-day" data-v="${k}">${x}</button>`).join("")}</div>
+    ${back ? `<p class="small" style="color:var(--warn)">${L("Some days are back to back. Try leaving a rest day so your legs can recover.", "Ada hari berturut-turut. Cuba selang sehari supaya kaki sempat rehat.")}</p>` : ""}
+    <label class="small mute">${L("Time", "Masa")}<input type="time" id="remTime" class="field" value="${remDraft.time}" style="margin-top:4px"></label>
+    <button class="btn primary" data-act="rem-ics" style="margin-top:14px" ${remDraft.days.length ? "" : "disabled"}>${L("Add to phone calendar", "Tambah ke Calendar phone")}</button>
+    <button class="btn" data-act="rem-google" ${remDraft.days.length ? "" : "disabled"}>${L("Use Google Calendar", "Guna Google Calendar")}</button>
+    <button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>
+    <p class="mute small" style="margin-top:10px">${L('iPhone: tap the first button, then "Add All". Android: use Google Calendar.', 'iPhone: tekan butang pertama, lepas tu "Add All". Android: guna Google Calendar.')}</p>`);
 }
 function readRemTime() { const el = document.getElementById("remTime"); if (el && el.value) remDraft.time = el.value; }
 
-/* ---------- Ujian 20 minit ---------- */
+/* ---------- 20-minute test ---------- */
 function openTestIntro() {
-  sheet(`<p class="eyebrow">Ujian 20 minit</p><h1 style="font-size:24px">Ukur dulu, nanti nampak beza.</h1>
-    <p style="margin-top:8px">Jalan laju atau lari-jalan selama 20 minit, ikut ujian bercakap. Pergi sejauh yang selesa, bukan sampai semput.</p>
-    <ul class="plain small mute"><li>Kalau ada app jarak (Strava, Health, Google Fit atau jam), on kan dulu dan catat jarak.</li>
-    <li>Takde app? Catat je berapa minit paling lama boleh lari non-stop.</li>
-    <li>Ulang ujian yang sama bila lulus setiap tahap. Laluan yang sama lagi bagus.</li></ul>
-    <button class="btn primary" data-act="test-start">Mula ujian (timer 20 minit)</button>
-    <button class="btn" data-act="test-manual">Dah buat, isi result</button>
-    <button class="btn ghost" data-act="sheet-close">Batal</button>`);
+  sheet(`<p class="eyebrow">${L("20-minute test", "Ujian 20 minit")}</p><h1 style="font-size:26px">${L("Measure now, see the change later.", "Ukur dulu, nanti nampak beza.")}</h1>
+    <p style="margin-top:8px">${L("Brisk walk or run-walk for 20 minutes, using the talk test. Go as far as feels comfortable, not until you're gasping.", "Jalan laju atau lari-jalan selama 20 minit, ikut ujian bercakap. Pergi sejauh yang selesa, bukan sampai semput.")}</p>
+    <ul class="plain small mute"><li>${L("If you have a distance app (Strava, Health, Google Fit or a watch), turn it on and note the distance.", "Kalau ada app jarak (Strava, Health, Google Fit atau jam), on kan dulu dan catat jarak.")}</li>
+    <li>${L("No app? Just note the longest you could run without stopping.", "Takde app? Catat je berapa minit paling lama boleh lari non-stop.")}</li>
+    <li>${L("Repeat the same test each time you pass a stage. Same route is even better.", "Ulang ujian yang sama bila lulus setiap tahap. Laluan yang sama lagi bagus.")}</li></ul>
+    <button class="btn primary" data-act="test-start">${L("Start test (20-minute timer)", "Mula ujian (timer 20 minit)")}</button>
+    <button class="btn" data-act="test-manual">${L("Already done, enter results", "Dah buat, isi result")}</button>
+    <button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`);
 }
 function openTest(fromTimer) {
   pendingRpe = null;
   const slot = state.open.findIndex(s => !s || !s.done);
   const chips = Array.from({ length: 10 }, (_, k) => k + 1).map(v => `<button class="chip" data-act="rpe" data-v="${v}">${v}</button>`).join("");
-  sheet(`<p class="eyebrow">${fromTimer ? "Ujian siap. Syabas!" : "Result ujian"}</p><h1 style="font-size:24px">Catat result</h1>
-    <div class="bmi" style="margin-top:12px"><label><span class="small mute">Jarak (km)</span><input id="tKm" class="field" inputmode="decimal" placeholder="2.1"></label>
-    <label><span class="small mute">Lari non-stop paling lama (minit)</span><input id="tRun" class="field" inputmode="decimal" placeholder="0"></label></div>
-    <p class="small" style="margin-top:12px;font-weight:700">Rasa penat berapa?</p><div class="chips ten">${chips}</div>
-    ${slot >= 0 ? `<label class="check" style="border:0"><input type="checkbox" id="tSess" checked><span class="small">Kira sebagai sesi ${slot + 1} minggu ni</span></label>` : ""}
-    <button class="btn primary" data-act="save-test" style="margin-top:8px">Simpan</button>
-    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">Batal</button>`}`);
+  sheet(`<p class="eyebrow">${fromTimer ? L("Test done. Well done!", "Ujian siap. Syabas!") : L("Test results", "Result ujian")}</p><h1 style="font-size:26px">${L("Note your results", "Catat result")}</h1>
+    <div class="bmi" style="margin-top:12px"><label><span class="small mute">${L("Distance (km)", "Jarak (km)")}</span><input id="tKm" class="field" inputmode="decimal" placeholder="2.1"></label>
+    <label><span class="small mute">${L("Longest non-stop run (min)", "Lari non-stop paling lama (minit)")}</span><input id="tRun" class="field" inputmode="decimal" placeholder="0"></label></div>
+    <p class="small" style="margin-top:12px;font-weight:700">${L("How hard did it feel?", "Rasa penat berapa?")}</p><div class="chips ten">${chips}</div>
+    ${slot >= 0 ? `<label class="check" style="border:0"><input type="checkbox" id="tSess" checked><span class="small">${L(`Count it as session ${slot + 1} this week`, `Kira sebagai sesi ${slot + 1} minggu ni`)}</span></label>` : ""}
+    <button class="btn primary" data-act="save-test" style="margin-top:8px">${L("Save", "Simpan")}</button>
+    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`}`);
 }
 const num = v => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
 function testCard() {
-  if (state.testDue) return `<div class="card invite" style="margin-top:14px"><p class="eyebrow">Masa ujian ulang</p><h3>Kau dah lulus satu tahap. Ulang ujian 20 minit, tengok beza.</h3>
-    <button class="btn primary" data-act="test-intro" style="margin-top:10px">Buat ujian</button><button class="link" data-act="test-later">Nanti dulu</button></div>`;
-  if (!state.tests.length && !state.testSkip) return `<div class="card" style="margin-top:14px"><p class="eyebrow">Ujian awal</p><h3>Ukur tahap kau sekarang, 20 minit.</h3>
-    <p class="mute small">Nanti bila lulus setiap tahap, ulang dan nampak beza dengan nombor.</p>
-    <button class="btn primary" data-act="test-intro" style="margin-top:10px">Buat ujian awal</button><button class="link" data-act="test-skip">Langkau dulu</button></div>`;
+  if (state.testDue) return `<div class="card invite"><p class="eyebrow">${L("Time to retest", "Masa ujian ulang")}</p><h3>${L("You passed a stage. Do the 20-minute test again and see the difference.", "Kau dah lulus satu tahap. Ulang ujian 20 minit, tengok beza.")}</h3>
+    <button class="btn primary" data-act="test-intro" style="margin-top:12px">${L("Do the test", "Buat ujian")}</button><button class="link" data-act="test-later">${L("Later", "Nanti dulu")}</button></div>`;
+  if (!state.tests.length && !state.testSkip) return `<div class="card"><p class="eyebrow">${L("First test", "Ujian awal")}</p><h3>${L("Measure where you are now. 20 minutes.", "Ukur tahap kau sekarang, 20 minit.")}</h3>
+    <p class="mute small">${L("Each time you pass a stage, repeat it and see your progress in numbers.", "Nanti bila lulus setiap tahap, ulang dan nampak beza dengan nombor.")}</p>
+    <button class="btn primary" data-act="test-intro" style="margin-top:12px">${L("Do the first test", "Buat ujian awal")}</button><button class="link" data-act="test-skip">${L("Skip for now", "Langkau dulu")}</button></div>`;
   return "";
 }
 function inviteCard() {
   if (!state.passes.t2) return "";
   const href = CLASS_URL || THREADS_URL;
-  return `<a class="card invite" style="display:block;color:inherit;text-decoration:none;margin-top:14px" href="${href}" target="_blank" rel="noopener">
-    <p class="eyebrow">Langkah seterusnya</p><h3>Dah boleh lari 30 minit. Jom kejar 5K pertama dengan coach.</h3>
-    <p class="mute small">Kelas online SihatLab: 8 kelas live, Ahad 8:30 malam, ujian minggu 1 dan 12.</p>
-    <span class="btn primary" style="margin-top:10px">${CLASS_URL ? "Daftar kelas" : "DM \"KELAS\" kat Threads"}</span></a>`;
+  return `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${href}" target="_blank" rel="noopener">
+    <p class="eyebrow">${L("Next step", "Langkah seterusnya")}</p><h3>${L("You can run 30 minutes now. Go for your first 5K with a coach.", "Dah boleh lari 30 minit. Jom kejar 5K pertama dengan coach.")}</h3>
+    <p class="mute small">${L("SihatLab online class: 8 live classes, Sundays 8:30pm, tests in week 1 and 12.", "Kelas online SihatLab: 8 kelas live, Ahad 8:30 malam, ujian minggu 1 dan 12.")}</p>
+    <span class="btn primary" style="margin-top:12px">${CLASS_URL ? L("Join the class", "Daftar kelas") : L('DM "KELAS" on Threads', 'DM "KELAS" kat Threads')}</span></a>`;
 }
 function share(text) {
   if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
   window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
 }
 
-/* ---------- Bunyi, suara, skrin ---------- */
+/* ---------- Sound, voice, screen ---------- */
 let actx = null, wakeLock = null;
 function unlockAudio() {
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) {}
@@ -464,19 +476,21 @@ function speak(text) {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     const v = speechSynthesis.getVoices();
-    const pick = v.find(x => /^ms/i.test(x.lang)) || v.find(x => /^id/i.test(x.lang));
-    if (pick) { u.voice = pick; u.lang = pick.lang; } else u.lang = "ms-MY";
+    const ms = state.lang === "ms";
+    const pick = ms ? (v.find(x => /^ms/i.test(x.lang)) || v.find(x => /^id/i.test(x.lang)))
+                    : (v.find(x => /^en-(GB|AU|US)/i.test(x.lang)) || v.find(x => /^en/i.test(x.lang)));
+    if (pick) { u.voice = pick; u.lang = pick.lang; } else u.lang = ms ? "ms-MY" : "en-GB";
     u.rate = 1; speechSynthesis.speak(u);
   } catch (e) {}
 }
 const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
 function cue(k, first, sg) {
-  if (k === "mv") { beep(740, .12); beep(740, .12, .18); vib(150); speak((first ? "Mula. " : "") + sg.label); return; }
-  if (k === "t") { beep(880, .15); beep(1175, .35, .22); vib([200, 100, 400]); speak("Mula ujian. 20 minit."); return; }
-  if (k === "r") { beep(880, .15); beep(880, .15, .22); beep(1175, .35, .44); vib([200, 100, 200, 100, 400]); speak(first ? "Mula. Lari." : "Lari"); }
-  else if (k === "w") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak("Jalan"); }
-  else if (k === "wu") { beep(660, .3); vib(300); speak("Mula. Panaskan badan, jalan laju."); }
-  else if (k === "cd") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak("Bertenang. Jalan perlahan."); }
+  if (k === "mv") { beep(740, .12); beep(740, .12, .18); vib(150); speak((first ? L("Start. ", "Mula. ") : "") + tx(sg.label)); return; }
+  if (k === "t") { beep(880, .15); beep(1175, .35, .22); vib([200, 100, 400]); speak(L("Test starts. 20 minutes.", "Mula ujian. 20 minit.")); return; }
+  if (k === "r") { beep(880, .15); beep(880, .15, .22); beep(1175, .35, .44); vib([200, 100, 200, 100, 400]); speak(first ? L("Start. Run.", "Mula. Lari.") : L("Run", "Lari")); }
+  else if (k === "w") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak(L("Walk", "Jalan")); }
+  else if (k === "wu") { beep(660, .3); vib(300); speak(L("Start. Warm up with a brisk walk.", "Mula. Panaskan badan, jalan laju.")); }
+  else if (k === "cd") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak(L("Cool down. Walk slowly.", "Bertenang. Jalan perlahan.")); }
 }
 async function keepAwake() { try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {} }
 function releaseAwake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
@@ -507,14 +521,14 @@ function tick() {
 }
 function finishTimer() {
   clearInterval(timerInt); releaseAwake();
-  beep(784, .2); beep(988, .2, .22); beep(1319, .6, .44); vib([300, 100, 300, 100, 600]); speak("Sesi siap. Syabas!");
+  beep(784, .2); beep(988, .2, .22); beep(1319, .6, .44); vib([300, 100, 300, 100, 600]); speak(L("Session done. Well done!", "Sesi siap. Syabas!"));
   const i = T.i, kind = T.kind; T = null; renderTimer();
   if (kind === "test") openTest(true); else openLog(i, true);
 }
 function fmt(sec) { sec = Math.max(0, Math.ceil(sec)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
-const PH = { r: "LARI", w: "JALAN", wu: "PANASKAN BADAN", cd: "BERTENANG", t: "UJIAN" };
-const PHSUB = { r: "Perlahan pun tak apa. Boleh bercakap.", w: "Jalan laju, tarik nafas.", wu: "Jalan laju.", cd: "Jalan perlahan.", t: "Jalan laju atau lari-jalan. Boleh cakap ayat penuh." };
-const phName = sg => sg.k === "mv" ? sg.label.toUpperCase() : PH[sg.k];
+const PH = () => ({ r: L("RUN", "LARI"), w: L("WALK", "JALAN"), wu: L("WARM UP", "PANASKAN BADAN"), cd: L("COOL DOWN", "BERTENANG"), t: L("TEST", "UJIAN") });
+const PHSUB = () => ({ r: L("Slow is fine. You should still be able to talk.", "Perlahan pun tak apa. Boleh bercakap."), w: L("Brisk walk, catch your breath.", "Jalan laju, tarik nafas."), wu: L("Brisk walk.", "Jalan laju."), cd: L("Walk slowly.", "Jalan perlahan."), t: L("Brisk walk or run-walk. You can talk in full sentences.", "Jalan laju atau lari-jalan. Boleh cakap ayat penuh.") });
+const phName = sg => sg.k === "mv" ? tx(sg.label).toUpperCase() : PH()[sg.k];
 function renderTimer() {
   const el = document.getElementById("timer");
   if (!T) { el && el.remove(); return; }
@@ -525,19 +539,19 @@ function renderTimer() {
   const total = T.segs.reduce((a, s) => a + s.sec, 0);
   const strip = T.segs.map((s, j) => `<i class="${s.k === "r" ? "r" : s.k === "mv" ? "m" : ""} ${j === T.idx ? "cur" : j < T.idx ? "past" : ""}" style="flex:${s.sec}"></i>`).join("");
   const html = `
-    <div class="row between"><span class="meta">${T.kind === "test" ? "Ujian 20 minit" : `${label(state.cur.t, state.cur.w)} · Sesi ${T.i + 1}`}</span><span class="meta">${T.idx + 1}/${T.segs.length}</span></div>
-    <div class="phase">${T.paused ? "REHAT SEKEJAP" : phName(cur)}</div>
+    <div class="row between"><span class="meta">${T.kind === "test" ? L("20-minute test", "Ujian 20 minit") : `${label(state.cur.t, state.cur.w)} · ${L("Session", "Sesi")} ${T.i + 1}`}</span><span class="meta">${T.idx + 1}/${T.segs.length}</span></div>
+    <div class="phase">${T.paused ? L("PAUSED", "REHAT SEKEJAP") : phName(cur)}</div>
     <div class="clock">${fmt(segLeft)}</div>
-    <div class="next">${cur.desc || PHSUB[cur.k]}</div>
-    <div class="next" style="margin-top:6px">${nx ? `Seterusnya: ${phName(nx).toLowerCase()} ${fmt(nx.sec)}` : "Ni yang terakhir!"}</div>
+    <div class="next">${cur.desc ? tx(cur.desc) : PHSUB()[cur.k]}</div>
+    <div class="next" style="margin-top:6px">${nx ? `${L("Next", "Seterusnya")}: ${phName(nx).toLowerCase()} ${fmt(nx.sec)}` : L("Last one!", "Ni yang terakhir!")}</div>
     <div class="strip">${strip}</div>
-    <div class="tot"><span>Baki ${fmt(segLeft + rest)}</span><span>Total ${fmt(total)}</span></div>
+    <div class="tot"><span>${L("Left", "Baki")} ${fmt(segLeft + rest)}</span><span>${L("Total", "Jumlah")} ${fmt(total)}</span></div>
     <div class="ctl">
-      <button data-act="t-end">Tamat</button>
-      <button data-act="t-pause">${T.paused ? "Sambung" : "Pause"}</button>
-      <button data-act="t-skip">Langkau</button>
+      <button data-act="t-end">${L("End", "Tamat")}</button>
+      <button data-act="t-pause">${T.paused ? L("Resume", "Sambung") : L("Pause", "Rehat")}</button>
+      <button data-act="t-skip">${L("Skip", "Langkau")}</button>
     </div>
-    <div class="warn">Biar skrin hidup. Kalau lock phone, bunyi mungkin tak keluar.</div>`;
+    <div class="warn">${L("Keep the screen on. If you lock the phone, sounds may not play.", "Biar skrin hidup. Kalau lock phone, bunyi mungkin tak keluar.")}</div>`;
   let box = el;
   if (!box) { box = document.createElement("div"); box.id = "timer"; document.body.appendChild(box); }
   box.className = "timer" + (cur.k === "r" && !T.paused ? " run" : "");
@@ -545,7 +559,7 @@ function renderTimer() {
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && T) { keepAwake(); tick(); } });
 
-/* ---------- Sheet (pop-up bawah) ---------- */
+/* ---------- Bottom sheet ---------- */
 function sheet(html) { document.getElementById("layer").innerHTML = `<div class="sheet" data-act="sheet-bg"><div class="box">${html}</div></div>`; }
 function closeSheet() { document.getElementById("layer").innerHTML = ""; }
 
@@ -555,32 +569,37 @@ function openLog(i, fromTimer) {
   pendingRpe = ex && ex.rpe ? ex.rpe : null;
   const chips = Array.from({ length: 10 }, (_, k) => k + 1).map(v => `<button class="chip ${pendingRpe === v ? "sel" : ""}" data-act="rpe" data-v="${v}">${v}</button>`).join("");
   sheet(`
-    <p class="eyebrow">${fromTimer ? "Sesi siap. Syabas!" : `Sesi ${i + 1}`}</p>
-    <h1 style="font-size:24px">Rasa penat berapa?</h1>
-    <p class="mute small" style="margin-top:6px">1 = sangat senang, 10 = paling berat. Kalau ikut ujian bercakap, biasanya dalam 4 hingga 6.</p>
+    <p class="eyebrow">${fromTimer ? L("Session done. Well done!", "Sesi siap. Syabas!") : L(`Session ${i + 1}`, `Sesi ${i + 1}`)}</p>
+    <h1 style="font-size:26px">${L("How hard did it feel?", "Rasa penat berapa?")}</h1>
+    <p class="mute small" style="margin-top:6px">${L("1 = very easy, 10 = hardest ever. With the talk test it's usually around 4 to 6.", "1 = sangat senang, 10 = paling berat. Kalau ikut ujian bercakap, biasanya dalam 4 hingga 6.")}</p>
     <div class="chips ten">${chips}</div>
-    <p class="mute small" style="margin-top:14px">Esok pagi, buka app ni dan isi sakit 0–10.</p>
-    <button class="btn primary" data-act="save-log" data-i="${i}" style="margin-top:8px">Simpan</button>
-    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">Batal</button>`}`);
+    <p class="mute small" style="margin-top:14px">${L("Tomorrow morning, open the app and rate any pain from 0 to 10.", "Esok pagi, buka app ni dan isi sakit 0–10.")}</p>
+    <button class="btn primary" data-act="save-log" data-i="${i}" style="margin-top:8px">${L("Save", "Simpan")}</button>
+    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`}`);
 }
 
 function showDecision(r, h) {
   const big = r.d.startsWith("lulus");
   sheet(`
-    <p class="eyebrow">${label(h.t, h.w)} ditutup</p>
+    <p class="eyebrow">${label(h.t, h.w)} ${L("closed", "ditutup")}</p>
     <h1 style="font-size:${big ? 32 : 26}px;${big ? "color:var(--good)" : ""}">${r.title}</h1>
     <p style="margin-top:8px">${r.msg}</p>
-    ${r.d === "stop" ? `<div class="alert red">Sakit dada, pening atau sesak nafas yang tak reda? Telefon 999.</div>` : ""}
-    ${big ? `<p class="small mute">Minggu ni, ulang ujian 20 minit untuk tengok beza dengan ujian awal.</p>` : ""}
-    <button class="btn primary" data-act="share-week" data-h="${state.history.length - 1}" style="margin-top:10px">Kongsi ke group WhatsApp</button>
-    ${r.d === "lulus2" ? `<a class="btn" href="${CLASS_URL || THREADS_URL}" target="_blank" rel="noopener" style="margin-top:8px;text-decoration:none">${CLASS_URL ? "Sambung ke 5K dengan coach" : "Nak sambung ke 5K? DM coach"}</a>` : ""}
+    ${r.d === "stop" ? `<div class="alert red">${L("Chest pain, dizziness or breathlessness that won't settle? Call 999.", "Sakit dada, pening atau sesak nafas yang tak reda? Telefon 999.")}</div>` : ""}
+    ${big ? `<p class="small mute">${L("This week, repeat the 20-minute test to compare with your first one.", "Minggu ni, ulang ujian 20 minit untuk tengok beza dengan ujian awal.")}</p>` : ""}
+    <button class="btn primary" data-act="share-week" data-h="${state.history.length - 1}" style="margin-top:10px">${L("Share to WhatsApp group", "Kongsi ke group WhatsApp")}</button>
+    ${r.d === "lulus2" ? `<a class="btn" href="${CLASS_URL || THREADS_URL}" target="_blank" rel="noopener" style="margin-top:8px;text-decoration:none">${CLASS_URL ? L("Go for 5K with a coach", "Sambung ke 5K dengan coach") : L("Want to go for 5K? DM the coach", "Nak sambung ke 5K? DM coach")}</a>` : ""}
     <button class="btn ghost" data-act="sheet-close">OK</button>`);
 }
 
-/* ---------- Skrin ---------- */
+/* ---------- Screens ---------- */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function painCls(v) { return v <= 2 ? "c-g" : v <= 5 ? "c-y" : "c-r"; }
-function painPill(v) { return `<span class="pill ${v <= 2 ? "g" : v <= 5 ? "y" : "r"}">sakit ${v}</span>`; }
+function painPill(v, top) { return `<span class="pill ${v <= 2 ? "g" : v <= 5 ? "y" : "r"}">${top ? L("highest pain", "sakit paling tinggi") : L("pain", "sakit")} ${v}</span>`; }
+function topBar() {
+  const ms = state.lang === "ms";
+  return `<div class="top"><img src="logo-dark.png" alt="SihatLab">
+    <div class="lang" role="group" aria-label="Language / Bahasa"><button data-act="lang" data-l="en" aria-pressed="${!ms}">EN</button><button data-act="lang" data-l="ms" aria-pressed="${ms}">BM</button></div></div>`;
+}
 
 function journey() {
   const { t, w } = state.cur;
@@ -590,7 +609,7 @@ function journey() {
   for (let i = 1; i <= 9; i++) cells.push(`<i class="${t > 2 || (t === 2 && i < w) ? "past" : t === 2 && i === w ? "now" : ""}"></i>`);
   cells.push('<i class="gap"></i>');
   cells.push(`<i class="${t === 3 ? "now" : ""}" style="flex:2"></i>`);
-  return `<div class="journey">${cells.join("")}</div><div class="jl"><span>Tahap 1 · jalan</span><span>Tahap 2 · lari-jalan</span><span>30 min</span></div>`;
+  return `<div class="journey">${cells.join("")}</div><div class="jl"><span>${L("Stage 1 · walk", "Tahap 1 · jalan")}</span><span>${L("Stage 2 · run-walk", "Tahap 2 · lari-jalan")}</span><span>30 min</span></div>`;
 }
 
 function homeView() {
@@ -599,136 +618,137 @@ function homeView() {
   const lastDone = state.open.filter(Boolean).map(s => s.date).sort().pop();
   const doneToday = lastDone === today();
   const nextIdx = state.open.findIndex(s => !s || !s.done);
-  let h = `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Mula Lari</small></div>`;
-  if (!storageOk) h += `<div class="alert red">Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.</div>`;
+  let h = topBar();
+  if (!storageOk) h += `<div class="alert red">${L("This phone won't let the app save data (maybe private mode). Your log won't be kept.", "Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.")}</div>`;
   const sk = streak();
-  h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${TAHAP[t]}</h1>${journey()}
-    <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">Streak ${sk} minggu</span>` : ""}
-    <button class="pill" data-act="remind">${state.remind ? "Peringatan: " + remSummary(state.remind) : "+ Set peringatan lari"}</button></div></div>`;
+  h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
+    <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
+    <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
   h += installCard("home") + inviteCard() + testCard();
-  if (st.maxP >= 6) h += `<div class="alert red" style="margin-top:14px">Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.</div>`;
+  if (st.maxP >= 6) h += `<div class="alert red">${L("Pain of 6/10 or more. Stop running and see a physio. Chest pain, dizziness or breathlessness? Call 999.", "Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.")}</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
-  if (needPain.length) h += `<div class="alert volt" style="margin-top:14px">Selamat pagi! Isi sakit untuk sesi ${needPain.map(i => i + 1).join(", ")} di bawah.</div>`;
-  h += `<h2>Sesi minggu ni</h2>`;
+  if (needPain.length) h += `<div class="alert volt">${L(`Rate your next-morning pain for session ${needPain.map(i => i + 1).join(", ")} below.`, `Isi sakit pagi esoknya untuk sesi ${needPain.map(i => i + 1).join(", ")} di bawah.`)}</div>`;
+  h += `<h2>${L("This week's sessions", "Sesi minggu ni")}</h2>`;
   for (let i = 0; i < 3; i++) {
     const s = getSession(t, w, i), o = state.open[i];
     const done = o && o.done;
     h += `<div class="card ${i === nextIdx ? "on" : ""}">
       <div class="row" style="align-items:flex-start"><div class="num ${done ? "done" : ""}">${done ? "✓" : i + 1}</div>
-      <div style="flex:1"><h3>${esc(s.d)}</h3><p class="mute small">${esc(s.sub)} ± ${totalMin(s.segs)} minit.</p></div></div>`;
+      <div style="flex:1"><h3>${esc(s.d)}</h3><p class="mute small">${esc(s.sub)} ${L(`About ${totalMin(s.segs)} min in total.`, `Lebih kurang ${totalMin(s.segs)} minit semua.`)}</p></div></div>`;
     if (done) {
-      h += `<div style="margin-top:4px"><span class="pill v">${o.test ? "ujian " : "siap "}${nice(o.date)}</span>${o.rpe ? `<span class="pill">penat ${o.rpe}</span>` : ""}${o.pain != null ? painPill(o.pain) : ""}</div>`;
+      h += `<div style="margin-top:4px"><span class="pill v">${o.test ? L("test ", "ujian ") : L("done ", "siap ")}${nice(o.date)}</span>${o.rpe ? `<span class="pill">${L("effort", "penat")} ${o.rpe}</span>` : ""}${o.pain != null ? painPill(o.pain) : ""}</div>`;
       if (o.pain == null) {
         const chips = Array.from({ length: 11 }, (_, v) => `<button class="chip ${painCls(v)}" data-act="pain" data-i="${i}" data-v="${v}">${v}</button>`).join("");
-        h += `<p class="small" style="margin-top:12px;font-weight:700">${o.date < today() ? "Pagi ni sakit berapa?" : "Isi esok pagi: sakit berapa?"}</p><div class="chips">${chips}</div>
-          <div class="row between mute" style="font-size:11px;margin-top:4px"><span>0–2 ok</span><span>3–5 ulang minggu</span><span>6+ berhenti</span></div>`;
+        h += `<p class="small" style="margin-top:12px;font-weight:700">${o.date < today() ? L("Any pain this morning? 0 to 10", "Pagi ni sakit berapa?") : L("Fill in tomorrow morning: any pain?", "Isi esok pagi: sakit berapa?")}</p><div class="chips">${chips}</div>
+          <div class="row between mute" style="font-size:11px;margin-top:4px"><span>${L("0–2 OK", "0–2 ok")}</span><span>${L("3–5 repeat week", "3–5 ulang minggu")}</span><span>${L("6+ stop", "6+ berhenti")}</span></div>`;
       }
-      h += `<div class="row" style="gap:16px;margin-top:6px"><button class="link" data-act="edit" data-i="${i}">Ubah penat</button>${o.pain != null ? `<button class="link" data-act="clear-pain" data-i="${i}">Ubah sakit</button>` : ""}<button class="link" data-act="del" data-i="${i}">Padam</button><button class="link" data-act="share-sess" data-i="${i}">Check-in</button></div>`;
+      h += `<div class="row" style="gap:16px;margin-top:6px;flex-wrap:wrap"><button class="link" data-act="edit" data-i="${i}">${L("Edit effort", "Ubah penat")}</button>${o.pain != null ? `<button class="link" data-act="clear-pain" data-i="${i}">${L("Edit pain", "Ubah sakit")}</button>` : ""}<button class="link" data-act="del" data-i="${i}">${L("Delete", "Padam")}</button><button class="link" data-act="share-sess" data-i="${i}">Check-in</button></div>`;
     } else {
-      if (i === nextIdx && doneToday) h += `<p class="small" style="color:var(--warn);margin:8px 0 0">Rehat sehari antara sesi. Sesi ni untuk lusa.</p>`;
-      h += `<button class="btn ${i === nextIdx ? "primary" : "ghost"}" data-act="start" data-i="${i}" style="margin-top:12px">Mula sesi ${i + 1}</button>
-        <button class="link" data-act="manual" data-i="${i}">Dah buat tanpa timer? Tanda siap</button>`;
+      if (i === nextIdx && doneToday) h += `<p class="small" style="color:var(--warn);margin:8px 0 0">${L("Rest a day between sessions. This one is for the day after tomorrow.", "Rehat sehari antara sesi. Sesi ni untuk lusa.")}</p>`;
+      h += `<button class="btn ${i === nextIdx ? "primary" : "ghost"}" data-act="start" data-i="${i}" style="margin-top:12px">${L(`Start session ${i + 1}`, `Mula sesi ${i + 1}`)}</button>
+        <button class="link" data-act="manual" data-i="${i}">${L("Did it without the timer? Mark as done", "Dah buat tanpa timer? Tanda siap")}</button>`;
     }
     h += `</div>`;
   }
-  // Tutup minggu
-  h += `<h2>Hujung minggu</h2><div class="card">`;
-  h += `<p class="small mute">Naik kalau sekurang-kurangnya 2 daripada 3 sesi siap dan sakit esok pagi 0–2. Kalau tak, ulang minggu. Ulang itu normal.</p>`;
-  h += `<p style="margin:8px 0 12px"><span class="pill ${st.n >= 2 ? "v" : ""}">${st.n}/3 sesi siap</span>${st.n ? painPill(st.maxP).replace("sakit", "sakit paling tinggi") : ""}</p>`;
-  if (st.n >= 2 && !st.missing) h += `<button class="btn primary" data-act="close">Tutup minggu & tengok keputusan</button>`;
-  else if (st.missing) h += `<p class="small">Isi sakit esok pagi untuk semua sesi yang siap dulu.</p>`;
-  else h += `<p class="small">Siapkan sekurang-kurangnya 2 sesi dulu.</p>`;
-  h += `<button class="link" data-act="force-ulang">Tak sempat minggu ni? Ulang minggu</button></div>`;
-  if (CLASS_URL && !state.passes.t2) h += `<a class="card" style="display:block;color:inherit;text-decoration:none;box-shadow:0 0 0 2px var(--ink)" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">Kelas online SihatLab</p><h3>Nak buat dengan coach dan kawan-kawan?</h3><p class="mute small">8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →</p></a>`;
+  h += `<h2>${L("End of the week", "Hujung minggu")}</h2><div class="card">`;
+  h += `<p class="small mute">${L("Move up if at least 2 of 3 sessions are done and next-morning pain is 0–2. If not, repeat the week. Repeating is normal.", "Naik kalau sekurang-kurangnya 2 daripada 3 sesi siap dan sakit esok pagi 0–2. Kalau tak, ulang minggu. Ulang itu normal.")}</p>`;
+  h += `<p style="margin:8px 0 12px"><span class="pill ${st.n >= 2 ? "v" : ""}">${L(`${st.n}/3 sessions done`, `${st.n}/3 sesi siap`)}</span>${st.n ? painPill(st.maxP, true) : ""}</p>`;
+  if (st.n >= 2 && !st.missing) h += `<button class="btn primary" data-act="close">${L("Close the week & see the result", "Tutup minggu & tengok keputusan")}</button>`;
+  else if (st.missing) h += `<p class="small">${L("First rate next-morning pain for every session you've done.", "Isi sakit esok pagi untuk semua sesi yang siap dulu.")}</p>`;
+  else h += `<p class="small">${L("Finish at least 2 sessions first.", "Siapkan sekurang-kurangnya 2 sesi dulu.")}</p>`;
+  h += `<button class="link" data-act="force-ulang">${L("No time this week? Repeat the week", "Tak sempat minggu ni? Ulang minggu")}</button></div>`;
+  if (CLASS_URL && !state.passes.t2) h += `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">${L("SihatLab online class", "Kelas online SihatLab")}</p><h3>${L("Want to do it with a coach and friends?", "Nak buat dengan coach dan kawan-kawan?")}</h3><p class="mute small">${L("8 live classes, Sundays 8:30pm. Tap to sign up →", "8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →")}</p></a>`;
   return h;
 }
 
 function logView() {
-  let h = `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Log</small></div><h1>Log sesi</h1>`;
-  if (state.passes.t1) h += `<div class="badge" style="margin-top:16px"><div class="dot">1</div><div><b>Lulus Tahap 1</b><br><span class="mute small">${nice(state.passes.t1)} · jalan laju 30 minit</span></div></div>`;
-  if (state.passes.t2) h += `<div class="badge"><div class="dot">2</div><div><b>Lulus Tahap 2</b><br><span class="mute small">${nice(state.passes.t2)} · lari 30 minit non-stop</span></div></div>`;
+  let h = topBar() + `<h1>${L("Your log", "Log sesi")}</h1>`;
+  if (state.passes.t1) h += `<div class="badge" style="margin-top:16px"><div class="dot">1</div><div><b>${L("Stage 1 passed", "Lulus Tahap 1")}</b><br><span class="mute small">${nice(state.passes.t1)} · ${L("30 min brisk walk", "jalan laju 30 minit")}</span></div></div>`;
+  if (state.passes.t2) h += `<div class="badge"><div class="dot">2</div><div><b>${L("Stage 2 passed", "Lulus Tahap 2")}</b><br><span class="mute small">${nice(state.passes.t2)} · ${L("30 min run non-stop", "lari 30 minit non-stop")}</span></div></div>`;
   const sk = streak();
-  h += `<h2>Konsisten</h2><div class="card"><div class="row between"><b>${sk ? `Streak ${sk} minggu` : "Belum ada streak"}</b><span class="mute small">2+ sesi seminggu</span></div>
-    ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> sesi</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ujian</span><span>8 minggu lepas</span></div></div>`;
-  h += `<h2>Ujian 20 minit</h2>`;
+  h += `<h2>${L("Consistency", "Konsisten")}</h2><div class="card"><div class="row between"><b>${sk ? L(`${sk}-week streak`, `Streak ${sk} minggu`) : L("No streak yet", "Belum ada streak")}</b><span class="mute small">${L("2+ sessions a week", "2+ sesi seminggu")}</span></div>
+    ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> ${L("session", "sesi")}</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ${L("test", "ujian")}</span><span>${L("last 8 weeks", "8 minggu lepas")}</span></div></div>`;
+  h += `<h2>${L("20-minute test", "Ujian 20 minit")}</h2>`;
   if (state.tests.length) {
     const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
-    const cell = (x, u) => x == null ? "-" : x + u;
-    h += `<div class="card">${two ? `<div class="row between small mute"><span>Awal · ${nice(a.date)}</span><span>Terkini · ${nice(b.date)}</span></div>` : `<p class="small mute">Ujian awal · ${nice(a.date)}. Ulang bila lulus tahap.</p>`}
-      <div class="ba"><div><b>${cell(a.km, "")}</b><span class="small mute">km</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.km, "")}</b><span class="small mute">km</span>` : `<span class="small mute">nanti</span>`}</div></div>
-      <div class="ba"><div><b>${cell(a.run, "")}</b><span class="small mute">min lari non-stop</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.run, "")}</b><span class="small mute">min lari non-stop</span>` : `<span class="small mute">nanti</span>`}</div></div>
-      <div class="row" style="gap:16px"><button class="link" data-act="test-intro">Buat ujian lagi</button><button class="link" data-act="share-tests">Kongsi</button></div></div>`;
-  } else h += `<div class="card"><p class="small mute">Belum ada ujian. Ukur sekarang supaya nanti nampak beza.</p><button class="btn ghost" data-act="test-intro">Buat ujian awal</button></div>`;
-  const all = state.history.filter(x => x.sessions).flatMap(x => x.sessions.filter(s => s && s.done));
-  const runs = all.length;
-  h += `<div class="row" style="margin:16px 0 4px;gap:8px"><div class="card" style="flex:1;margin:0"><h1>${runs}</h1><p class="mute small">sesi siap</p></div><div class="card" style="flex:1;margin:0"><h1>${state.history.length}</h1><p class="mute small">minggu ditutup</p></div></div>`;
-  if (!state.history.length) return h + `<p class="mute" style="margin-top:20px">Belum ada minggu yang ditutup. Lepas tutup minggu pertama, rekod keluar kat sini.</p>`;
-  const D = { naik: ["Naik", "v"], ulang: ["Ulang", "y"], stop: ["Berhenti", "r"], lulus1: ["Lulus Tahap 1", "v"], lulus2: ["Lulus Tahap 2", "v"] };
-  h += `<h2>Setiap minggu</h2>`;
+    const cell = x => x == null ? "-" : x;
+    const later = `<span class="small mute">${L("later", "nanti")}</span>`;
+    const runU = L("min non-stop run", "min lari non-stop");
+    h += `<div class="card">${two ? `<div class="row between small mute"><span>${L("First", "Awal")} · ${nice(a.date)}</span><span>${L("Latest", "Terkini")} · ${nice(b.date)}</span></div>` : `<p class="small mute">${L(`First test · ${nice(a.date)}. Repeat it when you pass a stage.`, `Ujian awal · ${nice(a.date)}. Ulang bila lulus tahap.`)}</p>`}
+      <div class="ba"><div><b>${cell(a.km)}</b><span class="small mute">km</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.km)}</b><span class="small mute">km</span>` : later}</div></div>
+      <div class="ba"><div><b>${cell(a.run)}</b><span class="small mute">${runU}</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.run)}</b><span class="small mute">${runU}</span>` : later}</div></div>
+      <div class="row" style="gap:16px"><button class="link" data-act="test-intro">${L("Test again", "Buat ujian lagi")}</button><button class="link" data-act="share-tests">${L("Share", "Kongsi")}</button></div></div>`;
+  } else h += `<div class="card"><p class="small mute">${L("No test yet. Measure now so you can see the change later.", "Belum ada ujian. Ukur sekarang supaya nanti nampak beza.")}</p><button class="btn ghost" data-act="test-intro">${L("Do the first test", "Buat ujian awal")}</button></div>`;
+  const runs = state.history.filter(x => x.sessions).flatMap(x => x.sessions.filter(s => s && s.done)).length + state.open.filter(s => s && s.done).length;
+  h += `<div class="row" style="margin:16px 0 4px;gap:8px"><div class="card" style="flex:1;margin:0"><h1>${runs}</h1><p class="mute small">${L("sessions done", "sesi siap")}</p></div><div class="card" style="flex:1;margin:0"><h1>${state.history.length}</h1><p class="mute small">${L("weeks closed", "minggu ditutup")}</p></div></div>`;
+  if (!state.history.length) return h + `<p class="mute" style="margin-top:20px">${L("No weeks closed yet. After you close your first week, it shows up here.", "Belum ada minggu yang ditutup. Lepas tutup minggu pertama, rekod keluar kat sini.")}</p>`;
+  const D = { naik: [L("Up", "Naik"), "v"], ulang: [L("Repeat", "Ulang"), "y"], stop: [L("Stop", "Berhenti"), "r"], lulus1: [L("Stage 1 passed", "Lulus Tahap 1"), "v"], lulus2: [L("Stage 2 passed", "Lulus Tahap 2"), "v"] };
+  h += `<h2>${L("Week by week", "Setiap minggu")}</h2>`;
   state.history.map((x, k) => [x, k]).reverse().forEach(([x, k]) => {
     const [txt, cls] = D[x.d] || [x.d, ""];
     h += `<div class="card hist"><div class="row between"><b>${label(x.t, x.w)}</b><span class="pill ${cls}">${txt}</span></div>
-      <div class="cells">${x.sessions.map((s, i) => `<div>${s && s.done ? `✓ S${i + 1}<br>penat ${s.rpe ?? "-"} · sakit ${s.pain ?? "-"}` : `<span class="mute">S${i + 1} -</span>`}</div>`).join("")}</div>
-      <div class="row between" style="margin-top:6px"><span class="mute small">${nice(x.date)}</span><button class="link" data-act="share-week" data-h="${k}">Kongsi</button></div></div>`;
+      <div class="cells">${x.sessions.map((s, i) => `<div>${s && s.done ? `✓ S${i + 1}<br>${L("effort", "penat")} ${s.rpe ?? "-"} · ${L("pain", "sakit")} ${s.pain ?? "-"}` : `<span class="mute">S${i + 1} -</span>`}</div>`).join("")}</div>
+      <div class="row between" style="margin-top:6px"><span class="mute small">${nice(x.date)}</span><button class="link" data-act="share-week" data-h="${k}">${L("Share", "Kongsi")}</button></div></div>`;
   });
   return h;
 }
 
 function infoView() {
-  return `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Panduan</small></div>
-  <h1>Panduan ringkas</h1>
-  <div class="alert red" style="margin-top:16px">Berhenti serta-merta kalau sakit atau tekanan di dada, pening atau rasa nak pitam, sesak nafas yang tak reda, jantung berdebar tak sekata. Sakit dada tak hilang dalam 5 minit? Telefon 999.</div>
-  <h2>Ujian bercakap</h2>
-  <div class="talk"><div><b>Boleh nyanyi</b><br>Terlalu senang</div><div class="ok"><b>Ayat penuh</b><br>Betul</div><div><b>2–3 perkataan</b><br>Terlalu laju</div></div>
-  <p class="mute small">Lari lebih perlahan dari jalan laju pun tak apa.</p>
-  <h2>Skala sakit (esok pagi)</h2>
-  <div class="card"><p><span class="pill g">0–2</span> Teruskan ikut pelan.</p><p><span class="pill y">3–5</span> Ulang minggu tu dulu.</p><p style="margin:0"><span class="pill r">6+</span> Atau sakit tajam, bengkak, terhincut: berhenti dan jumpa physio.</p></div>
-  <h2>Tetapan</h2>
+  return topBar() + `<h1>${L("Quick guide", "Panduan ringkas")}</h1>
+  <div class="alert red" style="margin-top:16px">${L("Stop straight away if you have chest pain or pressure, feel dizzy or faint, are short of breath and it won't settle, or your heartbeat feels irregular. Chest pain that doesn't go away in 5 minutes? Call 999.", "Berhenti serta-merta kalau sakit atau tekanan di dada, pening atau rasa nak pitam, sesak nafas yang tak reda, jantung berdebar tak sekata. Sakit dada tak hilang dalam 5 minit? Telefon 999.")}</div>
+  <h2>${L("The talk test", "Ujian bercakap")}</h2>
+  <div class="talk"><div><b>${L("Can sing", "Boleh nyanyi")}</b><br>${L("Too easy", "Terlalu senang")}</div><div class="ok"><b>${L("Full sentences", "Ayat penuh")}</b><br>${L("Just right", "Betul")}</div><div><b>${L("2–3 words", "2–3 perkataan")}</b><br>${L("Too fast", "Terlalu laju")}</div></div>
+  <p class="mute small">${L("Running slower than a brisk walk is completely fine.", "Lari lebih perlahan dari jalan laju pun tak apa.")}</p>
+  <h2>${L("Pain scale (next morning)", "Skala sakit (esok pagi)")}</h2>
+  <div class="card"><p><span class="pill g">0–2</span> ${L("Keep following the plan.", "Teruskan ikut pelan.")}</p><p><span class="pill y">3–5</span> ${L("Repeat that week first.", "Ulang minggu tu dulu.")}</p><p style="margin:0"><span class="pill r">6+</span> ${L("Or sharp pain, swelling, limping: stop and see a physio.", "Atau sakit tajam, bengkak, terhincut: berhenti dan jumpa physio.")}</p></div>
+  <h2>${L("Settings", "Tetapan")}</h2>
   <div class="card">
-    <label class="switch"><span>Bunyi beep</span><input type="checkbox" data-act="set" data-k="sound" ${state.sound ? "checked" : ""}></label>
-    <label class="switch"><span>Suara ("Lari", "Jalan")</span><input type="checkbox" data-act="set" data-k="voice" ${state.voice ? "checked" : ""}></label>
-    <label class="switch"><span>Gerakan pemanasan 2 minit<br><span class="mute small">Ayun kaki, buku lali, jengket. Dalam timer.</span></span><input type="checkbox" data-act="set" data-k="moves" ${state.moves ? "checked" : ""}></label>
-    <div class="switch"><span>Peringatan lari<br><span class="mute small">${state.remind ? remSummary(state.remind) : "Belum set"}</span></span><button class="pill v" data-act="remind">${state.remind ? "Tukar" : "Set"}</button></div>
+    <div class="switch"><span>${L("Language", "Bahasa")}</span><div class="lang"><button data-act="lang" data-l="en" aria-pressed="${state.lang !== "ms"}">English</button><button data-act="lang" data-l="ms" aria-pressed="${state.lang === "ms"}">BM</button></div></div>
+    <label class="switch"><span>${L("Beep sounds", "Bunyi beep")}</span><input type="checkbox" data-act="set" data-k="sound" ${state.sound ? "checked" : ""}></label>
+    <label class="switch"><span>${L('Voice ("Run", "Walk")', 'Suara ("Lari", "Jalan")')}</span><input type="checkbox" data-act="set" data-k="voice" ${state.voice ? "checked" : ""}></label>
+    <label class="switch"><span>${L("2-minute warm-up moves", "Gerakan pemanasan 2 minit")}<br><span class="mute small">${L("Leg swings, ankles, calf raises. Built into the timer.", "Ayun kaki, buku lali, jengket. Dalam timer.")}</span></span><input type="checkbox" data-act="set" data-k="moves" ${state.moves ? "checked" : ""}></label>
+    <div class="switch"><span>${L("Run reminders", "Peringatan lari")}<br><span class="mute small">${state.remind ? remSummary(state.remind) : L("Not set", "Belum set")}</span></span><button class="pill v" data-act="remind">${state.remind ? L("Change", "Tukar") : L("Set", "Set")}</button></div>
     <div style="padding:12px 0;border-bottom:1px solid var(--line)"><p style="margin:0 0 8px">BMI</p>${bmiBox("set", state.h, state.w)}</div>
-    <button class="btn ghost" data-act="test-sound" style="margin-top:8px">Test bunyi</button>
+    <button class="btn ghost" data-act="test-sound" style="margin-top:12px">${L("Test sound", "Test bunyi")}</button>
   </div>
-  <h2>Tukar tahap atau minggu</h2>
+  <h2>${L("Change stage or week", "Tukar tahap atau minggu")}</h2>
   <div class="card"><div class="row" style="gap:8px">
-    <select id="selT" style="flex:1;padding:12px;border-radius:12px;background:var(--card2);color:var(--text);border:0;font:inherit">${[1, 2, 3].map(t => `<option value="${t}" ${state.cur.t === t ? "selected" : ""}>Tahap ${t}</option>`).join("")}</select>
-    <select id="selW" style="flex:1;padding:12px;border-radius:12px;background:var(--card2);color:var(--text);border:0;font:inherit">${Array.from({ length: 9 }, (_, i) => i + 1).map(w => `<option value="${w}" ${state.cur.w === w ? "selected" : ""}>Minggu ${w}</option>`).join("")}</select>
-  </div><button class="btn ghost" data-act="jump" style="margin-top:8px">Tukar</button>
-  <p class="mute small" style="margin-top:8px">Tahap 1 ada 4 minggu, Tahap 2 ada 9 minggu.</p></div>
-  ${isStandalone() ? "" : `<h2>Pasang app</h2>${installCard("info").replace('style="margin-top:14px"', "")}`}
-  <h2>Data kau</h2>
+    <select id="selT" class="field" style="flex:1">${[1, 2, 3].map(t => `<option value="${t}" ${state.cur.t === t ? "selected" : ""}>${L("Stage", "Tahap")} ${t}</option>`).join("")}</select>
+    <select id="selW" class="field" style="flex:1">${Array.from({ length: 9 }, (_, i) => i + 1).map(w => `<option value="${w}" ${state.cur.w === w ? "selected" : ""}>${L("Week", "Minggu")} ${w}</option>`).join("")}</select>
+  </div><button class="btn ghost" data-act="jump" style="margin-top:10px">${L("Change", "Tukar")}</button>
+  <p class="mute small" style="margin-top:8px">${L("Stage 1 has 4 weeks, Stage 2 has 9 weeks.", "Tahap 1 ada 4 minggu, Tahap 2 ada 9 minggu.")}</p></div>
+  ${isStandalone() ? "" : `<h2>${L("Install the app", "Pasang app")}</h2>${installCard("info")}`}
+  <h2>${L("Your data", "Data kau")}</h2>
   <div class="card">
-    <p class="small mute">Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.</p>
-    <button class="btn ghost" data-act="export">Simpan backup</button>
-    <label class="btn ghost" style="cursor:pointer">Ambil backup<input type="file" accept="application/json,.json" data-act="import" hidden></label>
-    <button class="btn ghost" data-act="reset" style="color:var(--red-ink)">${resetArmed ? "Tekan sekali lagi untuk padam semua" : "Padam semua & mula semula"}</button>
+    <p class="small mute">${L("Your whole log is saved on this phone only. SihatLab can't see it. Changing phones? Save a backup first.", "Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.")}</p>
+    <button class="btn ghost" data-act="export">${L("Save backup", "Simpan backup")}</button>
+    <label class="btn ghost" style="cursor:pointer">${L("Restore backup", "Ambil backup")}<input type="file" accept="application/json,.json" data-act="import" hidden></label>
+    <button class="btn ghost" data-act="reset" style="color:var(--red-ink)">${resetArmed ? L("Tap again to delete everything", "Tekan sekali lagi untuk padam semua") : L("Delete everything & start over", "Padam semua & mula semula")}</button>
   </div>
-  <p class="mute small" style="margin-top:18px">Pelan ikut NHS Couch to 5K dan garis panduan WHO. Coach Abang Dollah · World Athletics Level 1 · Sains Sukan Tahap 1 (AKK). Panduan umum, bukan nasihat perubatan.</p>`;
+  <p class="mute small" style="margin-top:18px">${L("Plan based on NHS Couch to 5K and WHO guidelines. Coach Abang Dollah · World Athletics Level 1 · Sports Science Level 1 (AKK). General guidance, not medical advice.", "Pelan ikut NHS Couch to 5K dan garis panduan WHO. Coach Abang Dollah · World Athletics Level 1 · Sains Sukan Tahap 1 (AKK). Panduan umum, bukan nasihat perubatan.")}</p>`;
 }
 
-/* BMI calculator: tinggi (cm) + berat (kg) -> BMI, auto set bmi30 */
+/* BMI calculator: height (cm) + weight (kg) -> BMI, sets bmi30 automatically */
 function calcBmi(h, w) {
   h = parseFloat(String(h || "").replace(",", ".")); w = parseFloat(String(w || "").replace(",", "."));
   if (!h || !w) return null;
-  if (h < 3) h = h * 100;            // orang taip 1.70 -> 170 cm
+  if (h < 3) h = h * 100;            // someone typed 1.70 -> 170 cm
   if (h < 100 || h > 230 || w < 25 || w > 300) return null;
   return Math.round(w / (h / 100) ** 2 * 10) / 10;
 }
 function bmiNote(b) {
-  if (b == null) return `<span class="mute">Isi tinggi dan berat, BMI keluar sendiri.</span>`;
+  if (b == null) return `<span class="mute">${L("Enter height and weight and your BMI appears.", "Isi tinggi dan berat, BMI keluar sendiri.")}</span>`;
   return b >= 30
-    ? `BMI kau <b style="color:var(--warn)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`
-    : `BMI kau <b style="color:var(--good)">${b}</b>. Bawah 30, ikut pelan biasa.`;
+    ? L(`Your BMI is <b style="color:var(--warn)">${b}</b>. That's 30 or more, so the plan uses the BMI 30+ version (gentler on your knees).`, `BMI kau <b style="color:var(--warn)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`)
+    : L(`Your BMI is <b style="color:var(--good)">${b}</b>. Under 30, so you follow the normal plan.`, `BMI kau <b style="color:var(--good)">${b}</b>. Bawah 30, ikut pelan biasa.`);
 }
 function bmiBox(scope, h, w) {
-  return `<div class="bmi"><label><span class="small mute">Tinggi (cm)</span><input type="text" inputmode="decimal" placeholder="170" value="${String(h || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="h"></label>
-    <label><span class="small mute">Berat (kg)</span><input type="text" inputmode="decimal" placeholder="70" value="${String(w || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="w"></label></div>
+  return `<div class="bmi"><label><span class="small mute">${L("Height (cm)", "Tinggi (cm)")}</span><input type="text" inputmode="decimal" placeholder="170" value="${String(h || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="h"></label>
+    <label><span class="small mute">${L("Weight (kg)", "Berat (kg)")}</span><input type="text" inputmode="decimal" placeholder="70" value="${String(w || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="w"></label></div>
     <p class="small bmi-out" id="bmi-${scope}" style="margin:10px 0 0">${bmiNote(calcBmi(h, w))}</p>`;
 }
-/* ---------- Pasang kat home screen ---------- */
+
+/* ---------- Add to home screen ---------- */
 const UA = navigator.userAgent;
 const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
 const isIOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -738,65 +758,68 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instal
 window.addEventListener("appinstalled", () => { installEvt = null; state.installHide = true; save(); render(); });
 const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`;
 function installSteps() {
-  if (inApp) return `<p class="small" style="color:var(--warn);margin:10px 0 0">Kau buka link ni dalam app lain (Threads, Instagram, TikTok atau Facebook). Tekan ••• kat atas, pilih <b>Open in browser</b> (Safari atau Chrome), lepas tu ikut langkah ni.</p>`;
+  if (inApp) return `<p class="small" style="color:var(--yellow);margin:10px 0 0">${L("You opened this link inside another app (Threads, Instagram, TikTok or Facebook). Tap ••• at the top, choose <b>Open in browser</b> (Safari or Chrome), then follow these steps.", "Kau buka link ni dalam app lain (Threads, Instagram, TikTok atau Facebook). Tekan ••• kat atas, pilih <b>Open in browser</b> (Safari atau Chrome), lepas tu ikut langkah ni.")}</p>`;
   if (installOS === "ios") return `<ol class="steps">
-      <li><span>Buka link ni dalam <b>Safari</b>.</span></li>
-      <li><span>Tekan butang Share ${SHARE_ICON} (kotak dengan anak panah ke atas). Tak nampak? Tekan <b>•••</b> dulu.</span></li>
-      <li><span>Scroll bawah, tekan <b>Add to Home Screen</b> (atau <b>Tambah ke Skrin Utama</b>).</span></li>
-      <li><span>Tekan <b>Add</b>. Lepas ni buka dari icon SihatLab kat home screen.</span></li></ol>`;
-  return `${installEvt ? `<button class="btn primary" data-act="install" style="margin-top:10px">Pasang app (satu tekan)</button><p class="mute small" style="margin:8px 0 0">Tak jadi? Ikut cara manual:</p>` : ""}
+      <li><span>${L("Open this link in <b>Safari</b>.", "Buka link ni dalam <b>Safari</b>.")}</span></li>
+      <li><span>${L(`Tap the Share button ${SHARE_ICON} (a square with an arrow pointing up). Can't see it? Tap <b>•••</b> first.`, `Tekan butang Share ${SHARE_ICON} (kotak dengan anak panah ke atas). Tak nampak? Tekan <b>•••</b> dulu.`)}</span></li>
+      <li><span>${L("Scroll down and tap <b>Add to Home Screen</b>.", "Scroll bawah, tekan <b>Add to Home Screen</b> (atau <b>Tambah ke Skrin Utama</b>).")}</span></li>
+      <li><span>${L("Tap <b>Add</b>. From now on, open it from the SihatLab icon on your home screen.", "Tekan <b>Add</b>. Lepas ni buka dari icon SihatLab kat home screen.")}</span></li></ol>`;
+  return `${installEvt ? `<button class="btn primary" data-act="install" style="margin-top:12px">${L("Install app (one tap)", "Pasang app (satu tekan)")}</button><p class="mute small" style="margin:8px 0 0">${L("Didn't work? Do it manually:", "Tak jadi? Ikut cara manual:")}</p>` : ""}
     <ol class="steps">
-      <li><span>Buka link ni dalam <b>Chrome</b>.</span></li>
-      <li><span>Tekan <b>⋮</b> kat atas kanan.</span></li>
-      <li><span>Tekan <b>Add to Home screen</b> atau <b>Install app</b>.</span></li>
-      <li><span>Tekan <b>Install</b> atau <b>Add</b>. Lepas ni buka dari icon SihatLab.</span></li></ol>`;
+      <li><span>${L("Open this link in <b>Chrome</b>.", "Buka link ni dalam <b>Chrome</b>.")}</span></li>
+      <li><span>${L("Tap <b>⋮</b> at the top right.", "Tekan <b>⋮</b> kat atas kanan.")}</span></li>
+      <li><span>${L("Tap <b>Add to Home screen</b> or <b>Install app</b>.", "Tekan <b>Add to Home screen</b> atau <b>Install app</b>.")}</span></li>
+      <li><span>${L("Tap <b>Install</b> or <b>Add</b>. From now on, open it from the SihatLab icon.", "Tekan <b>Install</b> atau <b>Add</b>. Lepas ni buka dari icon SihatLab.")}</span></li></ol>`;
 }
 function installCard(where) {
   if (isStandalone()) return "";
   if (where === "home" && state.installHide) return "";
-  return `<div class="card invite" style="margin-top:14px"><p class="eyebrow">Pasang kat home screen</p>
-    <h3>Buka macam app, ada icon, boleh guna tanpa internet.</h3>
+  return `<div class="card invite"><p class="eyebrow">${L("Add to home screen", "Pasang kat home screen")}</p>
+    <h3>${L("Opens like an app, with its own icon, and works offline.", "Buka macam app, ada icon, boleh guna tanpa internet.")}</h3>
     <div class="seg2"><button class="${installOS === "ios" ? "sel" : ""}" data-act="install-os" data-os="ios">iPhone</button><button class="${installOS === "android" ? "sel" : ""}" data-act="install-os" data-os="android">Android</button></div>
     ${installSteps()}
-    <p class="mute small" style="margin:6px 0 0">Penting: log simpan ikut tempat kau buka. Lepas pasang, guna icon tu je, jangan buka link dalam browser lagi.</p>
-    ${where === "home" ? `<button class="link" data-act="install-hide">Dah pasang / sorok</button>` : ""}</div>`;
+    <p class="mute small" style="margin:6px 0 0">${L("Important: your log is saved where you open the app. After installing, only use the icon, not the link in the browser.", "Penting: log simpan ikut tempat kau buka. Lepas pasang, guna icon tu je, jangan buka link dalam browser lagi.")}</p>
+    ${where === "home" ? `<button class="link" data-act="install-hide">${L("Done / hide this", "Dah pasang / sorok")}</button>` : ""}</div>`;
 }
+
 let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" };
 function onboardView() {
-  return `<div class="top"><img src="logo-dark.png" alt="SihatLab"><small>Mula Lari</small></div>
-  <p class="eyebrow">Selamat datang</p><h1>Dari kosong ke 30 minit lari.</h1>
-  <p class="mute" style="margin-top:10px">Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.</p>
+  return topBar() + `
+  <p class="eyebrow">${L("Welcome", "Selamat datang")}</p><h1>${L("From zero to running 30 minutes.", "Dari kosong ke 30 minit lari.")}</h1>
+  <p class="mute" style="margin-top:10px">${L("Three stages: brisk walking, run-walk, running 30 minutes. You move up when you pass, not by the calendar.", "Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.")}</p>
   ${installCard("onb")}
-  <h2>1. Saringan kesihatan</h2>
+  <h2>${L("1. Health check", "1. Saringan kesihatan")}</h2>
   <div class="card">
-    <p class="small">Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.</p>
-    <p class="small">Doktor atau physio dulu kalau: sakit belakang atau lutut yang selalu datang balik, penyakit jantung, kencing manis atau buah pinggang (walaupun terkawal).</p>
-    <label class="check" style="border:0;padding-bottom:0"><input type="checkbox" data-act="onb" data-k="safe" ${onb.safe ? "checked" : ""}><span>Aku tak ada semua ni, atau doktor dah bagi ok.</span></label>
+    <p class="small">${L("See a doctor first if you have: chest pain, unusual shortness of breath, dizziness or fainting, swollen ankles, a racing or irregular heartbeat, or leg pain when walking.", "Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.")}</p>
+    <p class="small">${L("See a doctor or physio first if you have: back or knee pain that keeps coming back, heart disease, diabetes or kidney disease (even if it's under control).", "Doktor atau physio dulu kalau: sakit belakang atau lutut yang selalu datang balik, penyakit jantung, kencing manis atau buah pinggang (walaupun terkawal).")}</p>
+    <label class="check" style="border:0;padding-bottom:0"><input type="checkbox" data-act="onb" data-k="safe" ${onb.safe ? "checked" : ""}><span>${L("I don't have any of these, or my doctor has said OK.", "Aku tak ada semua ni, atau doktor dah bagi ok.")}</span></label>
   </div>
-  <h2>2. Sekarang boleh jalan laju 30 minit dengan selesa?</h2>
+  <h2>${L("2. Can you brisk walk for 30 minutes comfortably right now?", "2. Sekarang boleh jalan laju 30 minit dengan selesa?")}</h2>
   <div class="row" style="gap:8px">
-    <button class="btn ${onb.walk30 === true ? "primary" : ""}" data-act="onb-walk" data-v="1">Boleh</button>
-    <button class="btn ${onb.walk30 === false ? "primary" : ""}" data-act="onb-walk" data-v="0">Belum</button>
+    <button class="btn ${onb.walk30 === true ? "primary" : ""}" data-act="onb-walk" data-v="1">${L("Yes", "Boleh")}</button>
+    <button class="btn ${onb.walk30 === false ? "primary" : ""}" data-act="onb-walk" data-v="0">${L("Not yet", "Belum")}</button>
   </div>
-  ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? "Kau mula di Tahap 2: lari-jalan." : "Kau mula di Tahap 1: jalan laju, 2–4 minggu."}</p>`}
+  ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? L("You start at Stage 2: run-walk.", "Kau mula di Tahap 2: lari-jalan.") : L("You start at Stage 1: brisk walking, 2 to 4 weeks.", "Kau mula di Tahap 1: jalan laju, 2–4 minggu.")}</p>`}
   <h2>3. BMI</h2>
-  <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">Tak nak isi pun tak apa. Data ni simpan dalam phone je.</p></div>
-  <p class="small" id="bmi-onb-warn" style="color:var(--warn)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.</p>
-  <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? "Mula" : "Jawab soalan atas dulu"}</button>
-  <p class="mute small" style="margin-top:14px">Data simpan dalam phone ni je.</p>`;
+  <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">${L("You can skip this. It stays on your phone.", "Tak nak isi pun tak apa. Data ni simpan dalam phone je.")}</p></div>
+  <p class="small" id="bmi-onb-warn" style="color:var(--warn)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>${L("BMI 30+: we suggest starting at Stage 1 even if you can already walk 30 minutes. It's safer for your knees.", "BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.")}</p>
+  <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? L("Start", "Mula") : L("Answer the questions above first", "Jawab soalan atas dulu")}</button>
+  <p class="mute small" style="margin-top:14px">${L("Your data stays on this phone only.", "Data simpan dalam phone ni je.")}</p>`;
 }
 
 let resetArmed = false, delArmed = -1;
 function render() {
   const app = document.getElementById("app");
   const tabs = document.getElementById("tabs");
+  document.documentElement.lang = state.lang === "ms" ? "ms" : "en";
   if (!state.started) { tabs.hidden = true; app.innerHTML = onboardView(); return; }
   tabs.hidden = false;
-  tabs.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  const names = { home: L("Today", "Hari ni"), log: "Log", info: L("Guide", "Panduan") };
+  tabs.querySelectorAll("button").forEach(b => { b.classList.toggle("on", b.dataset.tab === tab); b.querySelector("span").textContent = names[b.dataset.tab]; });
   app.innerHTML = tab === "home" ? homeView() : tab === "log" ? logView() : infoView();
 }
 
-/* ---------- Tekan ---------- */
+/* ---------- Taps ---------- */
 document.addEventListener("click", e => {
   const tb = e.target.closest("[data-tab]");
   if (tb) { tab = tb.dataset.tab; resetArmed = false; render(); document.getElementById("scroller").scrollTop = 0; return; }
@@ -804,6 +827,7 @@ document.addEventListener("click", e => {
   if (!el) return;
   const act = el.dataset.act, i = +el.dataset.i, v = +el.dataset.v;
   switch (act) {
+    case "lang": state.lang = el.dataset.l === "ms" ? "ms" : "en"; save(); render(); break;
     case "sheet-bg": if (e.target === el) closeSheet(); break;
     case "sheet-close": closeSheet(); render(); break;
     case "start": startTimer(i); break;
@@ -814,10 +838,10 @@ document.addEventListener("click", e => {
       const ex = state.open[i], first = !(ex && ex.done);
       state.open[i] = { done: true, date: ex && ex.date ? ex.date : today(), rpe: pendingRpe, pain: ex ? ex.pain ?? null : null };
       save(); closeSheet(); render();
-      if (first) sheet(`<p class="eyebrow">Disimpan</p><h1 style="font-size:24px">Sesi ${i + 1} siap. Syabas!</h1>
-        <p class="mute small" style="margin-top:6px">Bagitahu group. Kawan nampak, kau pun lagi semangat.</p>
-        <button class="btn primary" data-act="share-sess" data-i="${i}">Check-in ke group WhatsApp</button>
-        <button class="btn ghost" data-act="sheet-close">Nanti</button>`);
+      if (first) sheet(`<p class="eyebrow">${L("Saved", "Disimpan")}</p><h1 style="font-size:26px">${L(`Session ${i + 1} done. Well done!`, `Sesi ${i + 1} siap. Syabas!`)}</h1>
+        <p class="mute small" style="margin-top:6px">${L("Tell the group. When friends see it, you stay motivated too.", "Bagitahu group. Kawan nampak, kau pun lagi semangat.")}</p>
+        <button class="btn primary" data-act="share-sess" data-i="${i}">${L("Check in to WhatsApp group", "Check-in ke group WhatsApp")}</button>
+        <button class="btn ghost" data-act="sheet-close">${L("Later", "Nanti")}</button>`);
       break;
     }
     case "share-sess": share(sessText(i)); break;
@@ -834,7 +858,7 @@ document.addEventListener("click", e => {
       else {
         const blob = new Blob([remIcs(state.remind)], { type: "text/calendar" });
         const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-        if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = "sihatlab-lari.ics";
+        if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = "sihatlab-run.ics";
         a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       }
       closeSheet(); render(); break;
@@ -857,12 +881,12 @@ document.addEventListener("click", e => {
     case "clear-pain": state.open[i].pain = null; save(); render(); break;
     case "del":
       if (delArmed === i) { state.open[i] = null; delArmed = -1; save(); render(); }
-      else { delArmed = i; el.textContent = "Tekan lagi untuk padam"; setTimeout(() => { delArmed = -1; }, 3000); }
+      else { delArmed = i; el.textContent = L("Tap again to delete", "Tekan lagi untuk padam"); setTimeout(() => { delArmed = -1; }, 3000); }
       break;
     case "close": closeWeek(false); break;
     case "force-ulang":
-      sheet(`<h1 style="font-size:24px">Ulang minggu ${state.cur.w}?</h1><p class="mute" style="margin-top:8px">Minggu ni ditutup dan kau buat minggu yang sama sekali lagi. Sesi yang dah siap tetap masuk log.</p>
-        <button class="btn primary" data-act="force-ulang-ok">Ya, ulang</button><button class="btn ghost" data-act="sheet-close">Batal</button>`);
+      sheet(`<h1 style="font-size:26px">${L(`Repeat week ${state.cur.w}?`, `Ulang minggu ${state.cur.w}?`)}</h1><p class="mute" style="margin-top:8px">${L("This week closes and you do the same week again. Sessions you've done still go in your log.", "Minggu ni ditutup dan kau buat minggu yang sama sekali lagi. Sesi yang dah siap tetap masuk log.")}</p>
+        <button class="btn primary" data-act="force-ulang-ok">${L("Yes, repeat", "Ya, ulang")}</button><button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`);
       break;
     case "force-ulang-ok": closeSheet(); closeWeek(true); break;
     case "share-week": share(weekText(state.history[+el.dataset.h])); break;
@@ -874,10 +898,10 @@ document.addEventListener("click", e => {
     case "t-end":
       if (!T) break;
       if (!T.paused) { T.left = T.end - Date.now(); T.paused = true; renderTimer(); }
-      sheet(`<h1 style="font-size:24px">Tamatkan sesi?</h1><p class="mute" style="margin-top:8px">Kalau dah buat hampir semua, simpan sebagai siap. Kalau rasa tak sedap badan, berhenti je, tak apa.</p>
-        <button class="btn primary" data-act="t-save">Simpan sebagai siap</button>
-        <button class="btn" data-act="t-cancel">Batal sesi (tak simpan)</button>
-        <button class="btn ghost" data-act="t-resume">Sambung</button>`);
+      sheet(`<h1 style="font-size:26px">${L("End the session?", "Tamatkan sesi?")}</h1><p class="mute" style="margin-top:8px">${L("If you did almost all of it, save it as done. If you don't feel well, just stop. That's fine.", "Kalau dah buat hampir semua, simpan sebagai siap. Kalau rasa tak sedap badan, berhenti je, tak apa.")}</p>
+        <button class="btn primary" data-act="t-save">${L("Save as done", "Simpan sebagai siap")}</button>
+        <button class="btn" data-act="t-cancel">${L("Cancel session (don't save)", "Batal sesi (tak simpan)")}</button>
+        <button class="btn ghost" data-act="t-resume">${L("Resume", "Sambung")}</button>`);
       setTimeout(() => { const l = document.querySelector(".sheet"); if (l) l.style.zIndex = 40; }, 0);
       break;
     case "t-resume": closeSheet(); if (T) { T.end = Date.now() + T.left; T.paused = false; renderTimer(); } break;
@@ -887,7 +911,7 @@ document.addEventListener("click", e => {
     case "jump": {
       const t = +document.getElementById("selT").value; let w = +document.getElementById("selW").value;
       if (t === 1) w = Math.min(w, 4);
-      if (state.open.some(Boolean) && !confirmJump) { confirmJump = true; el.textContent = "Sesi minggu ni akan dikosongkan. Tekan lagi."; break; }
+      if (state.open.some(Boolean) && !confirmJump) { confirmJump = true; el.textContent = L("This week's sessions will be cleared. Tap again.", "Sesi minggu ni akan dikosongkan. Tekan lagi."); break; }
       confirmJump = false; state.cur = { t, w }; state.open = [null, null, null]; save(); tab = "home"; render(); break;
     }
     case "export": {
@@ -896,7 +920,7 @@ document.addEventListener("click", e => {
       setTimeout(() => URL.revokeObjectURL(a.href), 2000); break;
     }
     case "reset":
-      if (resetArmed) { state = fresh(); save(); resetArmed = false; onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" }; render(); }
+      if (resetArmed) { const lang = state.lang; state = fresh(); state.lang = lang; save(); resetArmed = false; onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" }; render(); }
       else { resetArmed = true; render(); }
       break;
     case "onb-walk": onb.walk30 = v === 1; render(); break;
@@ -929,7 +953,7 @@ document.addEventListener("change", e => {
       const d = JSON.parse(txt);
       if (!d || d.v !== 1 || !d.cur || !Array.isArray(d.history)) throw new Error("bad");
       state = Object.assign(fresh(), d); save(); tab = "home"; render();
-    }).catch(() => sheet(`<h1 style="font-size:22px">Fail backup tak boleh dibaca</h1><p class="mute" style="margin-top:8px">Pastikan fail tu dari butang "Simpan backup".</p><button class="btn ghost" data-act="sheet-close">OK</button>`));
+    }).catch(() => sheet(`<h1 style="font-size:22px">${L("Can't read that backup file", "Fail backup tak boleh dibaca")}</h1><p class="mute" style="margin-top:8px">${L('Make sure the file came from the "Save backup" button.', 'Pastikan fail tu dari butang "Simpan backup".')}</p><button class="btn ghost" data-act="sheet-close">OK</button>`));
   }
 });
 
