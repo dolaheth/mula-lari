@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mula Lari">
+<title>SihatLab Mula Lari</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root {
+  --bg: #000; --card: #1C1C1E; --card2: #2C2C2E; --line: #3A3A3C;
+  --text: #F5F5F7; --mute: #A1A1A6; --volt: #C8F31D;
+  --red: #FF453A; --yellow: #FFD60A; --green: #34C759;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); color: var(--text); }
+body { font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Arial, sans-serif; font-size: 16px; line-height: 1.45; min-height: 100vh; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+.wrap { max-width: 480px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
+.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.top img { height: 22px; display: block; }
+.top small { color: var(--mute); font-size: 13px; }
+h1 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; line-height: 1.1; }
+h2 { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin: 26px 0 10px; }
+h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+p { margin: 0 0 10px; }
+.mute { color: var(--mute); }
+.small { font-size: 13px; }
+.eyebrow { color: var(--volt); font-weight: 700; font-size: 13px; letter-spacing: .3px; text-transform: uppercase; margin-bottom: 6px; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; margin-bottom: 10px; }
+.card.on { outline: 2px solid var(--volt); }
+.row { display: flex; gap: 10px; align-items: center; }
+.between { justify-content: space-between; }
+.btn { display: block; width: 100%; text-align: center; padding: 14px 16px; border-radius: 14px; font-weight: 800; font-size: 16px; background: var(--card2); }
+.btn.primary { background: var(--volt); color: #000; }
+.btn.red { background: var(--red); color: #000; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); }
+.btn + .btn { margin-top: 8px; }
+.row > .btn + .btn { margin-top: 0; }
+.btn[disabled] { opacity: .5; }
+.link { color: var(--mute); font-size: 14px; text-decoration: underline; padding: 8px 0; }
+.num { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--card2); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+.num.done { background: var(--volt); color: #000; }
+.chips { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; margin-top: 8px; }
+.chips.ten { grid-template-columns: repeat(10, 1fr); }
+.chip { padding: 9px 0; border-radius: 8px; background: var(--card2); font-weight: 800; font-size: 14px; text-align: center; }
+.chip.sel { outline: 2px solid #FFF; }
+.c-g { background: #1F4D2B; } .c-y { background: #5C4E0B; } .c-r { background: #5E1A16; }
+.c-g.sel { background: var(--green); color: #000; } .c-y.sel { background: var(--yellow); color: #000; } .c-r.sel { background: var(--red); color: #000; }
+.pill { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--card2); color: var(--text); margin-right: 4px; }
+.pill.v { background: var(--volt); color: #000; }
+.pill.g { background: var(--green); color: #000; } .pill.y { background: var(--yellow); color: #000; } .pill.r { background: var(--red); color: #000; }
+.journey { display: flex; gap: 3px; margin: 14px 0 6px; }
+.journey i { flex: 1; height: 6px; border-radius: 3px; background: var(--card2); }
+.journey i.past { background: #6B7A1F; } .journey i.now { background: var(--volt); }
+.journey i.gap { flex: .4; background: transparent; }
+.jl { display: flex; justify-content: space-between; font-size: 12px; color: var(--mute); }
+.alert { border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; font-weight: 600; }
+.alert.red { background: var(--red); color: #000; }
+.alert.volt { background: var(--volt); color: #000; }
+.alert.dim { background: var(--card2); }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid #1C1C1E; padding-bottom: env(safe-area-inset-bottom); z-index: 5; }
+.tabs .in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+.tabs button { padding: 12px 0 10px; font-size: 13px; font-weight: 700; color: var(--mute); }
+.tabs button.on { color: var(--volt); }
+.tabs svg { display: block; margin: 0 auto 3px; width: 22px; height: 22px; }
+.sheet { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet .box { background: var(--card); width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); max-height: 92vh; overflow: auto; }
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.check input { width: 22px; height: 22px; accent-color: var(--volt); flex: none; margin-top: 1px; }
+ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom: 4px; }
+/* timer */
+.timer { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); background: #000; transition: background .3s; }
+.timer.run { background: var(--volt); color: #000; }
+.timer .meta { font-size: 14px; font-weight: 700; opacity: .75; }
+.timer .phase { font-size: 46px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; margin-top: 8vh; }
+.timer .clock { font-size: 96px; font-weight: 900; letter-spacing: -4px; font-variant-numeric: tabular-nums; line-height: 1; margin: 14px 0 10px; }
+.timer .next { font-size: 18px; font-weight: 700; opacity: .8; }
+.strip { display: flex; gap: 2px; height: 14px; margin: auto 0 10px; }
+.strip i { border-radius: 2px; background: #48484A; }
+.strip i.r { background: #8FA81A; }
+.timer.run .strip i { background: rgba(0,0,0,.25); } .timer.run .strip i.r { background: rgba(0,0,0,.55); }
+.strip i.cur { outline: 2px solid currentColor; outline-offset: 1px; }
+.strip i.past { opacity: .35; }
+.timer .tot { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; opacity: .8; margin-bottom: 14px; }
+.timer .ctl { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; }
+.timer .ctl button { padding: 16px 0; border-radius: 16px; font-weight: 800; background: #1C1C1E; color: #FFF; }
+.timer.run .ctl button { background: #000; color: var(--volt); }
+.timer .warn { font-size: 12px; opacity: .65; text-align: center; margin-top: 10px; }
+.hist .cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.hist .cells div { background: var(--card2); border-radius: 10px; padding: 6px 8px; font-size: 12px; }
+.badge { display: flex; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--volt); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; }
+.badge .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--volt); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none; }
+.switch { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.switch input { width: 22px; height: 22px; accent-color: var(--volt); }
+.bmi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bmi label { display: flex; flex-direction: column; gap: 4px; }
+.bmi input { width: 100%; padding: 12px; border-radius: 12px; background: var(--card2); color: var(--text); border: 0; font: inherit; font-size: 18px; }
+.bmi input:focus-visible { outline: 2px solid var(--volt); }
+.strip i.m { background: #D1D1D6; }
+.timer.run .strip i.m { background: rgba(0,0,0,.4); }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 8px 0; }
+.days button { padding: 10px 0; border-radius: 10px; background: var(--card2); font-weight: 800; font-size: 13px; }
+.days button.sel { background: var(--volt); color: #000; }
+.field { width: 100%; padding: 12px; border-radius: 12px; background: var(--card2); color: var(--text); border: 0; font: inherit; font-size: 18px; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; }
+.cal b { font-size: 11px; color: var(--mute); text-align: center; font-weight: 700; }
+.cal i { height: 16px; border-radius: 4px; background: var(--card2); display: block; }
+.cal i.on { background: var(--volt); }
+.cal i.tst { background: #FFFFFF; }
+.cal i.now { outline: 2px solid var(--mute); outline-offset: -2px; }
+.cal i.fut { background: transparent; border: 1px dashed #2C2C2E; }
+.ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin: 6px 0; }
+.ba div { background: var(--card2); border-radius: 12px; padding: 10px; text-align: center; }
+.ba div b { display: block; font-size: 22px; letter-spacing: -.5px; }
+.ba .to { color: var(--volt); font-weight: 900; background: none; padding: 0; }
+.invite { border: 1px solid var(--volt); }
+.talk { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
+.talk div { background: var(--card2); border-radius: 12px; padding: 10px; font-size: 13px; }
+.talk div.ok { background: var(--volt); color: #000; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<nav class="tabs" id="tabs" hidden><div class="in">
+  <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M7 21l3-6 3 2v5M10 15l1-5 4 3 3-1M8 10l3-2"/></svg>Hari ni</button>
+  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2 2 4-4"/><rect x="4" y="3" width="16" height="18" rx="3"/></svg>Log</button>
+  <button data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Panduan</button>
+</div></nav>
+<div id="layer"></div>
+
+<script>
+"use strict";
+// Link kelas / website. Isi bila dah ada, contoh "https://sihatlab.my/daftar". Kosong = sorok.
+const CLASS_URL = "";
+// Kalau CLASS_URL kosong, kad ajak kelas suruh DM kat Threads.
+const THREADS_URL = "https://www.threads.net/@abdullahadnan___";
+
+/* ---------- Pelan (sama dengan Pelan Mula Lari PDF) ---------- */
+const MIN = 60;
+const seg = (k, m, label) => ({ k, sec: Math.round(m * MIN), label });
+const R = m => seg("r", m, "Lari");
+const W = m => seg("w", m, "Jalan");
+const rep = (arr, n) => Array.from({ length: n }, () => arr).flat();
+const WARM = seg("wu", 5, "Panaskan badan");
+const COOL = seg("cd", 5, "Bertenang");
+
+/* Gerakan pemanasan, 20 saat setiap satu (2 minit) */
+const MOVES = [
+  ["Jalan setempat", "Angkat lutut sikit, hayun tangan."],
+  ["Ayun kaki kiri", "Pegang dinding. Ayun depan-belakang, santai, tak payah tinggi."],
+  ["Ayun kaki kanan", "Tukar kaki. Ayun depan-belakang, santai."],
+  ["Ayun kaki ke tepi", "Kiri dulu, tukar kaki separuh masa."],
+  ["Pusing buku lali", "Hujung kaki atas lantai, pusing perlahan. Tukar kaki."],
+  ["Jengket", "Naik hujung kaki, turun perlahan. Ulang."],
+].map(([label, desc]) => ({ k: "mv", sec: 20, label, desc }));
+function withMoves(segs) {
+  if (!state.moves) return segs;
+  return segs[0] && segs[0].k === "wu" ? [segs[0], ...MOVES, ...segs.slice(1)] : [...MOVES, ...segs];
+}
+const T1_MIN = { 1: 20, 2: 25, 3: 30, 4: 30 };
+const T2 = {
+  1: { d: "Lari 1, jalan 1.5 · 8 kali lari", c: [...rep([R(1), W(1.5)], 7), R(1)] },
+  2: { d: "Lari 1.5, jalan 2 · 6 kali lari", c: [...rep([R(1.5), W(2)], 5), R(1.5)] },
+  3: { d: "Lari 1.5, jalan 1.5, lari 3, jalan 3 · 2 set", c: [R(1.5), W(1.5), R(3), W(3), R(1.5), W(1.5), R(3)] },
+  4: { d: "Lari 3, jalan 1.5, lari 5, jalan 2.5, lari 3, jalan 1.5, lari 5", c: [R(3), W(1.5), R(5), W(2.5), R(3), W(1.5), R(5)] },
+  5: { s: [
+    { d: "Lari 5, jalan 3 · 3 kali lari", c: [R(5), W(3), R(5), W(3), R(5)] },
+    { d: "Lari 8, jalan 5, lari 8", c: [R(8), W(5), R(8)] },
+    { d: "Lari 20 non-stop", c: [R(20)] } ] },
+  6: { s: [
+    { d: "Lari 5, jalan 3, lari 8, jalan 3, lari 5", c: [R(5), W(3), R(8), W(3), R(5)] },
+    { d: "Lari 10, jalan 3, lari 10", c: [R(10), W(3), R(10)] },
+    { d: "Lari 25 non-stop", c: [R(25)] } ] },
+  7: { d: "Lari 25 non-stop", c: [R(25)] },
+  8: { d: "Lari 28 non-stop", c: [R(28)] },
+  9: { d: "Lari 30 non-stop", c: [R(30)] },
+};
+const TAHAP = { 1: "Jalan laju", 2: "Lari-jalan", 3: "Lari 30 minit" };
+
+function walkSession(m) {
+  return { d: `Jalan laju ${m} minit`, sub: "Ikut ujian bercakap: boleh cakap ayat penuh.", segs: [seg("w", m, "Jalan laju")] };
+}
+function getSession(t, w, i) {
+  const s = baseSession(t, w, i);
+  return { ...s, segs: withMoves(s.segs) };
+}
+function testSession() {
+  return { d: "Ujian 20 minit", segs: withMoves([{ k: "t", sec: 20 * MIN, label: "Ujian" }]) };
+}
+function baseSession(t, w, i) {
+  if (t === 1) return walkSession(T1_MIN[w]);
+  if (t === 3) return { d: "Lari 30 minit non-stop", sub: "5 minit panaskan badan, 5 minit bertenang.", segs: [WARM, R(30), COOL] };
+  if (state.bmi30 && w === 1 && i === 2) {
+    const s = walkSession(30);
+    s.sub = "BMI 30+: minggu pertama Tahap 2, sesi 3 jalan laju je supaya jumlah lari kekal bawah 3 km.";
+    return s;
+  }
+  const wk = T2[w];
+  const s = wk.s ? wk.s[i] : wk;
+  return { d: s.d, sub: "5 minit jalan laju dulu, 5 minit jalan bertenang di hujung.", segs: [WARM, ...s.c, COOL] };
+}
+const totalMin = segs => Math.round(segs.reduce((a, s) => a + s.sec, 0) / MIN);
+const runMin = segs => segs.filter(s => s.k === "r").reduce((a, s) => a + s.sec, 0) / MIN;
+
+/* ---------- Simpan dalam phone ---------- */
+const KEY = "sihatlab-mula-lari-v1";
+let storageOk = true;
+const fresh = () => ({ v: 1, started: false, bmi30: false, sound: true, voice: true, cur: { t: 1, w: 1 }, open: [null, null, null], history: [], passes: {}, moves: true, remind: null, tests: [], testDue: false, testSkip: false });
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(fresh(), JSON.parse(raw)); }
+  catch (e) { storageOk = false; }
+  return fresh();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; } catch (e) { storageOk = false; } }
+let state = load();
+let tab = "home";
+
+/* ---------- Tarikh ---------- */
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+const BULAN = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+function nice(ds) { if (!ds) return ""; const [y, m, d] = ds.split("-").map(Number); return `${d} ${BULAN[m - 1]}`; }
+
+/* ---------- Keputusan minggu ---------- */
+function weekStats(open) {
+  const done = open.filter(s => s && s.done);
+  const pains = done.map(s => s.pain);
+  const missing = pains.some(p => p == null);
+  const known = pains.filter(p => p != null);
+  return { n: done.length, missing, maxP: known.length ? Math.max(...known) : 0 };
+}
+function decide() {
+  const { t, w } = state.cur;
+  const { n, maxP } = weekStats(state.open);
+  if (maxP >= 6) return { d: "stop", next: { t, w }, title: "Berhenti dulu", msg: "Ada sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Bila dah ok, ulang minggu ni." };
+  if (n < 2) return { d: "ulang", next: { t, w }, title: `Ulang minggu ${w}`, msg: "Kurang dari 2 sesi siap. Takpe, ulang minggu ni. Ulang itu normal." };
+  if (maxP >= 3) return { d: "ulang", next: { t, w }, title: `Ulang minggu ${w}`, msg: `Sakit ${maxP}/10 pada pagi esok. Ulang minggu ni dulu sebelum naik.` };
+  if (t === 1) {
+    if (w >= 3 && n === 3) return { d: "lulus1", next: { t: 2, w: 1 }, title: "Lulus Tahap 1!", msg: "Jalan laju 30 minit, 3 kali seminggu, tanpa sakit. Minggu depan mula Tahap 2: lari-jalan." };
+    if (w === 4) return { d: "ulang", next: { t, w }, title: "Ulang minggu 4", msg: "Nak lulus Tahap 1 kena siap 3 sesi 30 minit dalam seminggu. Cuba lagi minggu ni." };
+    return { d: "naik", next: { t, w: w + 1 }, title: `Naik ke minggu ${w + 1}`, msg: "Bagus. Teruskan ikut pelan." };
+  }
+  if (t === 2) {
+    if (w === 9 && n === 3) return { d: "lulus2", next: { t: 3, w: 1 }, title: "Lulus Tahap 2!", msg: "Lari 30 minit non-stop. Itu misi SihatLab: 30 minit, tanpa injury." };
+    if (w === 9) return { d: "ulang", next: { t, w }, title: "Ulang minggu 9", msg: "Nak lulus Tahap 2 kena siap 3 sesi lari 30 minit dalam seminggu. Sikit lagi!" };
+    return { d: "naik", next: { t, w: w + 1 }, title: `Naik ke minggu ${w + 1}`, msg: "Bagus. Bahagian lari makin panjang minggu depan." };
+  }
+  return { d: "naik", next: { t, w: w + 1 }, title: "Kekal 30 minit", msg: "Kekalkan 3 kali seminggu, 30 minit. Lepas 2–4 minggu, baru tambah apa-apa." };
+}
+function closeWeek(forceUlang) {
+  const r = forceUlang ? { d: "ulang", next: { ...state.cur }, title: `Ulang minggu ${state.cur.w}`, msg: "Takpe. Ulang minggu ni bila dah sedia." } : decide();
+  state.history.push({ t: state.cur.t, w: state.cur.w, sessions: state.open, d: r.d, date: today() });
+  if (r.d === "lulus1") { state.passes.t1 = today(); state.testDue = true; }
+  if (r.d === "lulus2") { state.passes.t2 = today(); state.testDue = true; }
+  state.cur = r.next; state.open = [null, null, null];
+  save(); render();
+  showDecision(r, state.history[state.history.length - 1]);
+}
+
+/* ---------- Kongsi ---------- */
+const label = (t, w) => `Tahap ${t} · Minggu ${w}`;
+function weekText(h) {
+  const lines = [`SihatLab Mula Lari · ${label(h.t, h.w)}`];
+  h.sessions.forEach((s, i) => lines.push(s && s.done ? `Sesi ${i + 1}: siap ✓ · penat ${s.rpe ?? "-"}/10 · sakit esok ${s.pain ?? "-"}/10` : `Sesi ${i + 1}: -`));
+  const D = { naik: "Naik minggu depan", ulang: "Ulang minggu", stop: "Berhenti, jumpa physio", lulus1: "LULUS TAHAP 1", lulus2: "LULUS TAHAP 2" };
+  lines.push(`Keputusan: ${D[h.d] || h.d}`);
+  return lines.join("\n");
+}
+function sessText(i) {
+  const s = getSession(state.cur.t, state.cur.w, i), o = state.open[i] || {};
+  const n = weekStats(state.open).n, k = streak();
+  return [`SihatLab Mula Lari ✓`, `${label(state.cur.t, state.cur.w)} · Sesi ${i + 1} siap`, `${s.d} (±${totalMin(s.segs)} minit)`,
+    `Penat ${o.rpe ?? "-"}/10`, `Minggu ni: ${n}/3 sesi${k ? ` · streak ${k} minggu` : ""}`].join("\n");
+}
+function testsText() {
+  const a = state.tests[0], b = state.tests[state.tests.length - 1];
+  const L = [`SihatLab Mula Lari · Ujian 20 minit`];
+  if (state.tests.length > 1) {
+    L.push(`Awal (${nice(a.date)}) → terkini (${nice(b.date)})`);
+    if (a.km != null && b.km != null) L.push(`Jarak: ${a.km} km → ${b.km} km`);
+    if (a.run != null && b.run != null) L.push(`Lari non-stop: ${a.run} → ${b.run} minit`);
+    L.push(`Penat: ${a.rpe ?? "-"} → ${b.rpe ?? "-"}/10`);
+  } else L.push(`Ujian awal ${nice(a.date)}: ${a.km != null ? a.km + " km" : "-"} · lari non-stop ${a.run ?? "-"} minit`);
+  return L.join("\n");
+}
+
+/* ---------- Streak dan kalendar ---------- */
+const pd = ds => { const [y, m, d] = ds.split("-").map(Number); return new Date(y, m - 1, d); };
+const ds = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function monday(d) { const x = new Date(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+function activity() {
+  const m = {};
+  const add = (date, kind) => { if (date) m[date] = m[date] === "tst" || kind === "tst" ? "tst" : "on"; };
+  state.history.forEach(h => (h.sessions || []).forEach(s => s && s.done && add(s.date, s.test ? "tst" : "on")));
+  state.open.forEach(s => s && s.done && add(s.date, s.test ? "tst" : "on"));
+  (state.tests || []).forEach(t => add(t.date, "tst"));
+  return m;
+}
+function streak() {
+  const m = activity(), per = {};
+  Object.keys(m).forEach(d => { const k = ds(monday(pd(d))); per[k] = (per[k] || 0) + 1; });
+  let wk = monday(new Date()), n = 0;
+  if ((per[ds(wk)] || 0) >= 2) n++;
+  wk.setDate(wk.getDate() - 7);
+  while ((per[ds(wk)] || 0) >= 2) { n++; wk.setDate(wk.getDate() - 7); }
+  return n;
+}
+function calendarGrid(weeks = 8) {
+  const m = activity(), t = today();
+  const start = monday(new Date()); start.setDate(start.getDate() - 7 * (weeks - 1));
+  let h = `<div class="cal">${["I", "S", "R", "K", "J", "S", "A"].map(x => `<b>${x}</b>`).join("")}`;
+  for (let i = 0; i < weeks * 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const k = ds(d);
+    h += `<i class="${k > t ? "fut" : m[k] || ""} ${k === t ? "now" : ""}" title="${nice(k)}"></i>`;
+  }
+  return h + `</div>`;
+}
+
+/* ---------- Peringatan (Calendar phone) ---------- */
+const BYDAY = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+const HARI = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
+let remDraft = null;
+function firstStart(r) {
+  const [hh, mm] = r.time.split(":").map(Number), now = new Date();
+  for (let k = 0; k < 8; k++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + k, hh, mm);
+    if (r.days.includes((d.getDay() + 6) % 7) && d > now) return d;
+  }
+  return now;
+}
+const icsT = d => `${ds(d).replace(/-/g, "")}T${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}00`;
+function remIcs(r) {
+  const a = firstStart(r), b = new Date(a.getTime() + 40 * 60000);
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//SihatLab//Mula Lari//MS", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+    `UID:mula-lari-${Date.now()}@sihatlab`, `DTSTAMP:${stamp}`, `DTSTART:${icsT(a)}`, `DTEND:${icsT(b)}`,
+    `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map(d => BYDAY[d]).join(",")}`,
+    "SUMMARY:Lari SihatLab (Mula Lari)", "DESCRIPTION:Buka app Mula Lari dan tekan Mula sesi. Pakai kasut\\, bawa air.",
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Masa untuk lari", "TRIGGER:-PT10M", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+}
+function remGoogle(r) {
+  const a = firstStart(r), b = new Date(a.getTime() + 40 * 60000);
+  const q = new URLSearchParams({ action: "TEMPLATE", text: "Lari SihatLab (Mula Lari)", dates: `${icsT(a)}/${icsT(b)}`,
+    details: "Buka app Mula Lari dan tekan Mula sesi.", recur: `RRULE:FREQ=WEEKLY;BYDAY=${r.days.map(d => BYDAY[d]).join(",")}`, ctz: "Asia/Kuala_Lumpur" });
+  return "https://calendar.google.com/calendar/render?" + q.toString();
+}
+function remSummary(r) { return `${r.days.map(d => HARI[d]).join(", ")} · ${r.time}`; }
+function openRemind() {
+  remDraft = remDraft || (state.remind ? { days: [...state.remind.days], time: state.remind.time } : { days: [0, 2, 5], time: "06:30" });
+  const d = [...remDraft.days].sort((x, y) => x - y);
+  const back = d.some((x, k) => k && x - d[k - 1] === 1) || (d.includes(0) && d.includes(6));
+  sheet(`<p class="eyebrow">Peringatan</p><h1 style="font-size:24px">Hari dan masa lari</h1>
+    <p class="mute small" style="margin-top:6px">Pilih 3 hari, ada sehari rehat antara. Phone akan bagi notification 10 minit sebelum.</p>
+    <div class="days">${HARI.map((x, k) => `<button class="${remDraft.days.includes(k) ? "sel" : ""}" data-act="rem-day" data-v="${k}">${x}</button>`).join("")}</div>
+    ${back ? `<p class="small" style="color:var(--yellow)">Ada hari berturut-turut. Cuba selang sehari supaya kaki sempat rehat.</p>` : ""}
+    <label class="small mute">Masa<input type="time" id="remTime" class="field" value="${remDraft.time}" style="margin-top:4px"></label>
+    <button class="btn primary" data-act="rem-ics" style="margin-top:14px" ${remDraft.days.length ? "" : "disabled"}>Tambah ke Calendar phone</button>
+    <button class="btn" data-act="rem-google" ${remDraft.days.length ? "" : "disabled"}>Guna Google Calendar</button>
+    <button class="btn ghost" data-act="sheet-close">Batal</button>
+    <p class="mute small" style="margin-top:10px">iPhone: tekan butang pertama, lepas tu "Add All". Android: guna Google Calendar.</p>`);
+}
+function readRemTime() { const el = document.getElementById("remTime"); if (el && el.value) remDraft.time = el.value; }
+
+/* ---------- Ujian 20 minit ---------- */
+function openTestIntro() {
+  sheet(`<p class="eyebrow">Ujian 20 minit</p><h1 style="font-size:24px">Ukur dulu, nanti nampak beza.</h1>
+    <p style="margin-top:8px">Jalan laju atau lari-jalan selama 20 minit, ikut ujian bercakap. Pergi sejauh yang selesa, bukan sampai semput.</p>
+    <ul class="plain small mute"><li>Kalau ada app jarak (Strava, Health, Google Fit atau jam), on kan dulu dan catat jarak.</li>
+    <li>Takde app? Catat je berapa minit paling lama boleh lari non-stop.</li>
+    <li>Ulang ujian yang sama bila lulus setiap tahap. Laluan yang sama lagi bagus.</li></ul>
+    <button class="btn primary" data-act="test-start">Mula ujian (timer 20 minit)</button>
+    <button class="btn" data-act="test-manual">Dah buat, isi result</button>
+    <button class="btn ghost" data-act="sheet-close">Batal</button>`);
+}
+function openTest(fromTimer) {
+  pendingRpe = null;
+  const slot = state.open.findIndex(s => !s || !s.done);
+  const chips = Array.from({ length: 10 }, (_, k) => k + 1).map(v => `<button class="chip" data-act="rpe" data-v="${v}">${v}</button>`).join("");
+  sheet(`<p class="eyebrow">${fromTimer ? "Ujian siap. Syabas!" : "Result ujian"}</p><h1 style="font-size:24px">Catat result</h1>
+    <div class="bmi" style="margin-top:12px"><label><span class="small mute">Jarak (km)</span><input id="tKm" class="field" inputmode="decimal" placeholder="2.1"></label>
+    <label><span class="small mute">Lari non-stop paling lama (minit)</span><input id="tRun" class="field" inputmode="decimal" placeholder="0"></label></div>
+    <p class="small" style="margin-top:12px;font-weight:700">Rasa penat berapa?</p><div class="chips ten">${chips}</div>
+    ${slot >= 0 ? `<label class="check" style="border:0"><input type="checkbox" id="tSess" checked><span class="small">Kira sebagai sesi ${slot + 1} minggu ni</span></label>` : ""}
+    <button class="btn primary" data-act="save-test" style="margin-top:8px">Simpan</button>
+    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">Batal</button>`}`);
+}
+const num = v => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null; };
+function testCard() {
+  if (state.testDue) return `<div class="card invite" style="margin-top:14px"><p class="eyebrow">Masa ujian ulang</p><h3>Kau dah lulus satu tahap. Ulang ujian 20 minit, tengok beza.</h3>
+    <button class="btn primary" data-act="test-intro" style="margin-top:10px">Buat ujian</button><button class="link" data-act="test-later">Nanti dulu</button></div>`;
+  if (!state.tests.length && !state.testSkip) return `<div class="card" style="margin-top:14px"><p class="eyebrow">Ujian awal</p><h3>Ukur tahap kau sekarang, 20 minit.</h3>
+    <p class="mute small">Nanti bila lulus setiap tahap, ulang dan nampak beza dengan nombor.</p>
+    <button class="btn primary" data-act="test-intro" style="margin-top:10px">Buat ujian awal</button><button class="link" data-act="test-skip">Langkau dulu</button></div>`;
+  return "";
+}
+function inviteCard() {
+  if (!state.passes.t2) return "";
+  const href = CLASS_URL || THREADS_URL;
+  return `<a class="card invite" style="display:block;color:inherit;text-decoration:none;margin-top:14px" href="${href}" target="_blank" rel="noopener">
+    <p class="eyebrow">Langkah seterusnya</p><h3>Dah boleh lari 30 minit. Jom kejar 5K pertama dengan coach.</h3>
+    <p class="mute small">Kelas online SihatLab: 8 kelas live, Ahad 8:30 malam, ujian minggu 1 dan 12.</p>
+    <span class="btn primary" style="margin-top:10px">${CLASS_URL ? "Daftar kelas" : "DM \"KELAS\" kat Threads"}</span></a>`;
+}
+function share(text) {
+  if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+}
+
+/* ---------- Bunyi, suara, skrin ---------- */
+let actx = null, wakeLock = null;
+function unlockAudio() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) {}
+}
+function beep(freq, dur, at = 0, vol = 0.35) {
+  if (!actx || !state.sound) return;
+  const t0 = actx.currentTime + at;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = "sine"; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function speak(text) {
+  if (!state.voice || !("speechSynthesis" in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = speechSynthesis.getVoices();
+    const pick = v.find(x => /^ms/i.test(x.lang)) || v.find(x => /^id/i.test(x.lang));
+    if (pick) { u.voice = pick; u.lang = pick.lang; } else u.lang = "ms-MY";
+    u.rate = 1; speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const vib = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+function cue(k, first, sg) {
+  if (k === "mv") { beep(740, .12); beep(740, .12, .18); vib(150); speak((first ? "Mula. " : "") + sg.label); return; }
+  if (k === "t") { beep(880, .15); beep(1175, .35, .22); vib([200, 100, 400]); speak("Mula ujian. 20 minit."); return; }
+  if (k === "r") { beep(880, .15); beep(880, .15, .22); beep(1175, .35, .44); vib([200, 100, 200, 100, 400]); speak(first ? "Mula. Lari." : "Lari"); }
+  else if (k === "w") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak("Jalan"); }
+  else if (k === "wu") { beep(660, .3); vib(300); speak("Mula. Panaskan badan, jalan laju."); }
+  else if (k === "cd") { beep(523, .3); beep(392, .5, .35); vib([500, 150, 500]); speak("Bertenang. Jalan perlahan."); }
+}
+async function keepAwake() { try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {} }
+function releaseAwake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+/* ---------- Timer ---------- */
+let T = null, timerInt = null;
+function startTimer(i, custom) {
+  unlockAudio();
+  const s = custom || getSession(state.cur.t, state.cur.w, i);
+  T = { i, s, kind: custom ? "test" : "s", segs: s.segs, idx: 0, end: Date.now() + s.segs[0].sec * 1000, paused: false, left: 0, lastTick: -1 };
+  keepAwake(); cue(T.segs[0].k, true, T.segs[0]);
+  clearInterval(timerInt); timerInt = setInterval(tick, 200);
+  renderTimer();
+}
+function tick() {
+  if (!T || T.paused) return;
+  const now = Date.now();
+  let moved = false;
+  while (now >= T.end) {
+    T.idx++;
+    if (T.idx >= T.segs.length) return finishTimer();
+    T.end += T.segs[T.idx].sec * 1000; moved = true;
+  }
+  if (moved) cue(T.segs[T.idx].k, false, T.segs[T.idx]);
+  const left = Math.ceil((T.end - now) / 1000);
+  if (left <= 3 && left >= 1 && left !== T.lastTick) { T.lastTick = left; beep(1000, .08, 0, .25); }
+  renderTimer();
+}
+function finishTimer() {
+  clearInterval(timerInt); releaseAwake();
+  beep(784, .2); beep(988, .2, .22); beep(1319, .6, .44); vib([300, 100, 300, 100, 600]); speak("Sesi siap. Syabas!");
+  const i = T.i, kind = T.kind; T = null; renderTimer();
+  if (kind === "test") openTest(true); else openLog(i, true);
+}
+function fmt(sec) { sec = Math.max(0, Math.ceil(sec)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; }
+const PH = { r: "LARI", w: "JALAN", wu: "PANASKAN BADAN", cd: "BERTENANG", t: "UJIAN" };
+const PHSUB = { r: "Perlahan pun tak apa. Boleh bercakap.", w: "Jalan laju, tarik nafas.", wu: "Jalan laju.", cd: "Jalan perlahan.", t: "Jalan laju atau lari-jalan. Boleh cakap ayat penuh." };
+const phName = sg => sg.k === "mv" ? sg.label.toUpperCase() : PH[sg.k];
+function renderTimer() {
+  const el = document.getElementById("timer");
+  if (!T) { el && el.remove(); return; }
+  const now = Date.now();
+  const segLeft = T.paused ? T.left / 1000 : (T.end - now) / 1000;
+  const rest = T.segs.slice(T.idx + 1).reduce((a, s) => a + s.sec, 0);
+  const cur = T.segs[T.idx], nx = T.segs[T.idx + 1];
+  const total = T.segs.reduce((a, s) => a + s.sec, 0);
+  const strip = T.segs.map((s, j) => `<i class="${s.k === "r" ? "r" : s.k === "mv" ? "m" : ""} ${j === T.idx ? "cur" : j < T.idx ? "past" : ""}" style="flex:${s.sec}"></i>`).join("");
+  const html = `
+    <div class="row between"><span class="meta">${T.kind === "test" ? "Ujian 20 minit" : `${label(state.cur.t, state.cur.w)} · Sesi ${T.i + 1}`}</span><span class="meta">${T.idx + 1}/${T.segs.length}</span></div>
+    <div class="phase">${T.paused ? "REHAT SEKEJAP" : phName(cur)}</div>
+    <div class="clock">${fmt(segLeft)}</div>
+    <div class="next">${cur.desc || PHSUB[cur.k]}</div>
+    <div class="next" style="margin-top:6px">${nx ? `Seterusnya: ${phName(nx).toLowerCase()} ${fmt(nx.sec)}` : "Ni yang terakhir!"}</div>
+    <div class="strip">${strip}</div>
+    <div class="tot"><span>Baki ${fmt(segLeft + rest)}</span><span>Total ${fmt(total)}</span></div>
+    <div class="ctl">
+      <button data-act="t-end">Tamat</button>
+      <button data-act="t-pause">${T.paused ? "Sambung" : "Pause"}</button>
+      <button data-act="t-skip">Langkau</button>
+    </div>
+    <div class="warn">Biar skrin hidup. Kalau lock phone, bunyi mungkin tak keluar.</div>`;
+  let box = el;
+  if (!box) { box = document.createElement("div"); box.id = "timer"; document.body.appendChild(box); }
+  box.className = "timer" + (cur.k === "r" && !T.paused ? " run" : "");
+  box.innerHTML = html;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && T) { keepAwake(); tick(); } });
+
+/* ---------- Sheet (pop-up bawah) ---------- */
+function sheet(html) { document.getElementById("layer").innerHTML = `<div class="sheet" data-act="sheet-bg"><div class="box">${html}</div></div>`; }
+function closeSheet() { document.getElementById("layer").innerHTML = ""; }
+
+let pendingRpe = null;
+function openLog(i, fromTimer) {
+  const ex = state.open[i];
+  pendingRpe = ex && ex.rpe ? ex.rpe : null;
+  const chips = Array.from({ length: 10 }, (_, k) => k + 1).map(v => `<button class="chip ${pendingRpe === v ? "sel" : ""}" data-act="rpe" data-v="${v}">${v}</button>`).join("");
+  sheet(`
+    <p class="eyebrow">${fromTimer ? "Sesi siap. Syabas!" : `Sesi ${i + 1}`}</p>
+    <h1 style="font-size:24px">Rasa penat berapa?</h1>
+    <p class="mute small" style="margin-top:6px">1 = sangat senang, 10 = paling berat. Kalau ikut ujian bercakap, biasanya dalam 4 hingga 6.</p>
+    <div class="chips ten">${chips}</div>
+    <p class="mute small" style="margin-top:14px">Esok pagi, buka app ni dan isi sakit 0–10.</p>
+    <button class="btn primary" data-act="save-log" data-i="${i}" style="margin-top:8px">Simpan</button>
+    ${fromTimer ? "" : `<button class="btn ghost" data-act="sheet-close">Batal</button>`}`);
+}
+
+function showDecision(r, h) {
+  const big = r.d.startsWith("lulus");
+  sheet(`
+    <p class="eyebrow">${label(h.t, h.w)} ditutup</p>
+    <h1 style="font-size:${big ? 32 : 26}px;${big ? "color:var(--volt)" : ""}">${r.title}</h1>
+    <p style="margin-top:8px">${r.msg}</p>
+    ${r.d === "stop" ? `<div class="alert red">Sakit dada, pening atau sesak nafas yang tak reda? Telefon 999.</div>` : ""}
+    ${big ? `<p class="small mute">Minggu ni, ulang ujian 20 minit untuk tengok beza dengan ujian awal.</p>` : ""}
+    <button class="btn primary" data-act="share-week" data-h="${state.history.length - 1}" style="margin-top:10px">Kongsi ke group WhatsApp</button>
+    ${r.d === "lulus2" ? `<a class="btn" href="${CLASS_URL || THREADS_URL}" target="_blank" rel="noopener" style="margin-top:8px;text-decoration:none">${CLASS_URL ? "Sambung ke 5K dengan coach" : "Nak sambung ke 5K? DM coach"}</a>` : ""}
+    <button class="btn ghost" data-act="sheet-close">OK</button>`);
+}
+
+/* ---------- Skrin ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function painCls(v) { return v <= 2 ? "c-g" : v <= 5 ? "c-y" : "c-r"; }
+function painPill(v) { return `<span class="pill ${v <= 2 ? "g" : v <= 5 ? "y" : "r"}">sakit ${v}</span>`; }
+
+function journey() {
+  const { t, w } = state.cur;
+  const cells = [];
+  for (let i = 1; i <= 4; i++) cells.push(`<i class="${t > 1 || (t === 1 && i < w) ? "past" : t === 1 && i === w ? "now" : ""}"></i>`);
+  cells.push('<i class="gap"></i>');
+  for (let i = 1; i <= 9; i++) cells.push(`<i class="${t > 2 || (t === 2 && i < w) ? "past" : t === 2 && i === w ? "now" : ""}"></i>`);
+  cells.push('<i class="gap"></i>');
+  cells.push(`<i class="${t === 3 ? "now" : ""}" style="flex:2"></i>`);
+  return `<div class="journey">${cells.join("")}</div><div class="jl"><span>Tahap 1 · jalan</span><span>Tahap 2 · lari-jalan</span><span>30 min</span></div>`;
+}
+
+function homeView() {
+  const { t, w } = state.cur;
+  const st = weekStats(state.open);
+  const lastDone = state.open.filter(Boolean).map(s => s.date).sort().pop();
+  const doneToday = lastDone === today();
+  const nextIdx = state.open.findIndex(s => !s || !s.done);
+  let h = `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Mula Lari</small></div>`;
+  if (!storageOk) h += `<div class="alert red">Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.</div>`;
+  h += `<p class="eyebrow">${label(t, w)}</p><h1>${TAHAP[t]}</h1>${journey()}`;
+  const sk = streak();
+  h += `<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">${sk ? `<span class="pill v">Streak ${sk} minggu</span>` : ""}
+    <button class="pill" data-act="remind">${state.remind ? "Peringatan: " + remSummary(state.remind) : "+ Set peringatan lari"}</button></div>`;
+  h += inviteCard() + testCard();
+  if (st.maxP >= 6) h += `<div class="alert red" style="margin-top:14px">Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.</div>`;
+  const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
+  if (needPain.length) h += `<div class="alert volt" style="margin-top:14px">Selamat pagi! Isi sakit untuk sesi ${needPain.map(i => i + 1).join(", ")} di bawah.</div>`;
+  h += `<h2>Sesi minggu ni</h2>`;
+  for (let i = 0; i < 3; i++) {
+    const s = getSession(t, w, i), o = state.open[i];
+    const done = o && o.done;
+    h += `<div class="card ${i === nextIdx ? "on" : ""}">
+      <div class="row" style="align-items:flex-start"><div class="num ${done ? "done" : ""}">${done ? "✓" : i + 1}</div>
+      <div style="flex:1"><h3>${esc(s.d)}</h3><p class="mute small">${esc(s.sub)} ± ${totalMin(s.segs)} minit.</p></div></div>`;
+    if (done) {
+      h += `<div style="margin-top:4px"><span class="pill v">${o.test ? "ujian " : "siap "}${nice(o.date)}</span>${o.rpe ? `<span class="pill">penat ${o.rpe}</span>` : ""}${o.pain != null ? painPill(o.pain) : ""}</div>`;
+      if (o.pain == null) {
+        const chips = Array.from({ length: 11 }, (_, v) => `<button class="chip ${painCls(v)}" data-act="pain" data-i="${i}" data-v="${v}">${v}</button>`).join("");
+        h += `<p class="small" style="margin-top:12px;font-weight:700">${o.date < today() ? "Pagi ni sakit berapa?" : "Isi esok pagi: sakit berapa?"}</p><div class="chips">${chips}</div>
+          <div class="row between mute" style="font-size:11px;margin-top:4px"><span>0–2 ok</span><span>3–5 ulang minggu</span><span>6+ berhenti</span></div>`;
+      }
+      h += `<div class="row" style="gap:16px;margin-top:6px"><button class="link" data-act="edit" data-i="${i}">Ubah penat</button>${o.pain != null ? `<button class="link" data-act="clear-pain" data-i="${i}">Ubah sakit</button>` : ""}<button class="link" data-act="del" data-i="${i}">Padam</button><button class="link" data-act="share-sess" data-i="${i}">Check-in</button></div>`;
+    } else {
+      if (i === nextIdx && doneToday) h += `<p class="small" style="color:var(--yellow);margin:8px 0 0">Rehat sehari antara sesi. Sesi ni untuk lusa.</p>`;
+      h += `<button class="btn ${i === nextIdx ? "primary" : "ghost"}" data-act="start" data-i="${i}" style="margin-top:12px">Mula sesi ${i + 1}</button>
+        <button class="link" data-act="manual" data-i="${i}">Dah buat tanpa timer? Tanda siap</button>`;
+    }
+    h += `</div>`;
+  }
+  // Tutup minggu
+  h += `<h2>Hujung minggu</h2><div class="card">`;
+  h += `<p class="small mute">Naik kalau sekurang-kurangnya 2 daripada 3 sesi siap dan sakit esok pagi 0–2. Kalau tak, ulang minggu. Ulang itu normal.</p>`;
+  h += `<p style="margin:8px 0 12px"><span class="pill ${st.n >= 2 ? "v" : ""}">${st.n}/3 sesi siap</span>${st.n ? painPill(st.maxP).replace("sakit", "sakit paling tinggi") : ""}</p>`;
+  if (st.n >= 2 && !st.missing) h += `<button class="btn primary" data-act="close">Tutup minggu & tengok keputusan</button>`;
+  else if (st.missing) h += `<p class="small">Isi sakit esok pagi untuk semua sesi yang siap dulu.</p>`;
+  else h += `<p class="small">Siapkan sekurang-kurangnya 2 sesi dulu.</p>`;
+  h += `<button class="link" data-act="force-ulang">Tak sempat minggu ni? Ulang minggu</button></div>`;
+  if (CLASS_URL && !state.passes.t2) h += `<a class="card" style="display:block;color:inherit;text-decoration:none;border:1px solid var(--volt)" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">Kelas online SihatLab</p><h3>Nak buat dengan coach dan kawan-kawan?</h3><p class="mute small">8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →</p></a>`;
+  return h;
+}
+
+function logView() {
+  let h = `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Log</small></div><h1>Log sesi</h1>`;
+  if (state.passes.t1) h += `<div class="badge" style="margin-top:16px"><div class="dot">1</div><div><b>Lulus Tahap 1</b><br><span class="mute small">${nice(state.passes.t1)} · jalan laju 30 minit</span></div></div>`;
+  if (state.passes.t2) h += `<div class="badge"><div class="dot">2</div><div><b>Lulus Tahap 2</b><br><span class="mute small">${nice(state.passes.t2)} · lari 30 minit non-stop</span></div></div>`;
+  const sk = streak();
+  h += `<h2>Konsisten</h2><div class="card"><div class="row between"><b>${sk ? `Streak ${sk} minggu` : "Belum ada streak"}</b><span class="mute small">2+ sesi seminggu</span></div>
+    ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> sesi</span><span><span class="pill" style="padding:0 6px;background:#fff">&nbsp;</span> ujian</span><span>8 minggu lepas</span></div></div>`;
+  h += `<h2>Ujian 20 minit</h2>`;
+  if (state.tests.length) {
+    const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
+    const cell = (x, u) => x == null ? "-" : x + u;
+    h += `<div class="card">${two ? `<div class="row between small mute"><span>Awal · ${nice(a.date)}</span><span>Terkini · ${nice(b.date)}</span></div>` : `<p class="small mute">Ujian awal · ${nice(a.date)}. Ulang bila lulus tahap.</p>`}
+      <div class="ba"><div><b>${cell(a.km, "")}</b><span class="small mute">km</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.km, "")}</b><span class="small mute">km</span>` : `<span class="small mute">nanti</span>`}</div></div>
+      <div class="ba"><div><b>${cell(a.run, "")}</b><span class="small mute">min lari non-stop</span></div><span class="to">${two ? "→" : ""}</span><div>${two ? `<b>${cell(b.run, "")}</b><span class="small mute">min lari non-stop</span>` : `<span class="small mute">nanti</span>`}</div></div>
+      <div class="row" style="gap:16px"><button class="link" data-act="test-intro">Buat ujian lagi</button><button class="link" data-act="share-tests">Kongsi</button></div></div>`;
+  } else h += `<div class="card"><p class="small mute">Belum ada ujian. Ukur sekarang supaya nanti nampak beza.</p><button class="btn ghost" data-act="test-intro">Buat ujian awal</button></div>`;
+  const all = state.history.filter(x => x.sessions).flatMap(x => x.sessions.filter(s => s && s.done));
+  const runs = all.length;
+  h += `<div class="row" style="margin:16px 0 4px;gap:8px"><div class="card" style="flex:1;margin:0"><h1>${runs}</h1><p class="mute small">sesi siap</p></div><div class="card" style="flex:1;margin:0"><h1>${state.history.length}</h1><p class="mute small">minggu ditutup</p></div></div>`;
+  if (!state.history.length) return h + `<p class="mute" style="margin-top:20px">Belum ada minggu yang ditutup. Lepas tutup minggu pertama, rekod keluar kat sini.</p>`;
+  const D = { naik: ["Naik", "v"], ulang: ["Ulang", "y"], stop: ["Berhenti", "r"], lulus1: ["Lulus Tahap 1", "v"], lulus2: ["Lulus Tahap 2", "v"] };
+  h += `<h2>Setiap minggu</h2>`;
+  state.history.map((x, k) => [x, k]).reverse().forEach(([x, k]) => {
+    const [txt, cls] = D[x.d] || [x.d, ""];
+    h += `<div class="card hist"><div class="row between"><b>${label(x.t, x.w)}</b><span class="pill ${cls}">${txt}</span></div>
+      <div class="cells">${x.sessions.map((s, i) => `<div>${s && s.done ? `✓ S${i + 1}<br>penat ${s.rpe ?? "-"} · sakit ${s.pain ?? "-"}` : `<span class="mute">S${i + 1} -</span>`}</div>`).join("")}</div>
+      <div class="row between" style="margin-top:6px"><span class="mute small">${nice(x.date)}</span><button class="link" data-act="share-week" data-h="${k}">Kongsi</button></div></div>`;
+  });
+  return h;
+}
+
+function infoView() {
+  return `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Panduan</small></div>
+  <h1>Panduan ringkas</h1>
+  <div class="alert red" style="margin-top:16px">Berhenti serta-merta kalau sakit atau tekanan di dada, pening atau rasa nak pitam, sesak nafas yang tak reda, jantung berdebar tak sekata. Sakit dada tak hilang dalam 5 minit? Telefon 999.</div>
+  <h2>Ujian bercakap</h2>
+  <div class="talk"><div><b>Boleh nyanyi</b><br>Terlalu senang</div><div class="ok"><b>Ayat penuh</b><br>Betul</div><div><b>2–3 perkataan</b><br>Terlalu laju</div></div>
+  <p class="mute small">Lari lebih perlahan dari jalan laju pun tak apa.</p>
+  <h2>Skala sakit (esok pagi)</h2>
+  <div class="card"><p><span class="pill g">0–2</span> Teruskan ikut pelan.</p><p><span class="pill y">3–5</span> Ulang minggu tu dulu.</p><p style="margin:0"><span class="pill r">6+</span> Atau sakit tajam, bengkak, terhincut: berhenti dan jumpa physio.</p></div>
+  <h2>Tetapan</h2>
+  <div class="card">
+    <label class="switch"><span>Bunyi beep</span><input type="checkbox" data-act="set" data-k="sound" ${state.sound ? "checked" : ""}></label>
+    <label class="switch"><span>Suara ("Lari", "Jalan")</span><input type="checkbox" data-act="set" data-k="voice" ${state.voice ? "checked" : ""}></label>
+    <label class="switch"><span>Gerakan pemanasan 2 minit<br><span class="mute small">Ayun kaki, buku lali, jengket. Dalam timer.</span></span><input type="checkbox" data-act="set" data-k="moves" ${state.moves ? "checked" : ""}></label>
+    <div class="switch"><span>Peringatan lari<br><span class="mute small">${state.remind ? remSummary(state.remind) : "Belum set"}</span></span><button class="pill v" data-act="remind">${state.remind ? "Tukar" : "Set"}</button></div>
+    <div style="padding:12px 0;border-bottom:1px solid var(--line)"><p style="margin:0 0 8px">BMI</p>${bmiBox("set", state.h, state.w)}</div>
+    <button class="btn ghost" data-act="test-sound" style="margin-top:8px">Test bunyi</button>
+  </div>
+  <h2>Tukar tahap atau minggu</h2>
+  <div class="card"><div class="row" style="gap:8px">
+    <select id="selT" style="flex:1;padding:12px;border-radius:12px;background:var(--card2);color:var(--text);border:0;font:inherit">${[1, 2, 3].map(t => `<option value="${t}" ${state.cur.t === t ? "selected" : ""}>Tahap ${t}</option>`).join("")}</select>
+    <select id="selW" style="flex:1;padding:12px;border-radius:12px;background:var(--card2);color:var(--text);border:0;font:inherit">${Array.from({ length: 9 }, (_, i) => i + 1).map(w => `<option value="${w}" ${state.cur.w === w ? "selected" : ""}>Minggu ${w}</option>`).join("")}</select>
+  </div><button class="btn ghost" data-act="jump" style="margin-top:8px">Tukar</button>
+  <p class="mute small" style="margin-top:8px">Tahap 1 ada 4 minggu, Tahap 2 ada 9 minggu.</p></div>
+  <h2>Data kau</h2>
+  <div class="card">
+    <p class="small mute">Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.</p>
+    <button class="btn ghost" data-act="export">Simpan backup</button>
+    <label class="btn ghost" style="cursor:pointer">Ambil backup<input type="file" accept="application/json,.json" data-act="import" hidden></label>
+    <button class="btn ghost" data-act="reset" style="color:var(--red)">${resetArmed ? "Tekan sekali lagi untuk padam semua" : "Padam semua & mula semula"}</button>
+  </div>
+  <p class="mute small" style="margin-top:18px">Pelan ikut NHS Couch to 5K dan garis panduan WHO. Coach Abang Dollah · World Athletics Level 1 · Sains Sukan Tahap 1 (AKK). Panduan umum, bukan nasihat perubatan.</p>`;
+}
+
+/* BMI calculator: tinggi (cm) + berat (kg) -> BMI, auto set bmi30 */
+function calcBmi(h, w) {
+  h = parseFloat(String(h || "").replace(",", ".")); w = parseFloat(String(w || "").replace(",", "."));
+  if (!h || !w) return null;
+  if (h < 3) h = h * 100;            // orang taip 1.70 -> 170 cm
+  if (h < 100 || h > 230 || w < 25 || w > 300) return null;
+  return Math.round(w / (h / 100) ** 2 * 10) / 10;
+}
+function bmiNote(b) {
+  if (b == null) return `<span class="mute">Isi tinggi dan berat, BMI keluar sendiri.</span>`;
+  return b >= 30
+    ? `BMI kau <b style="color:var(--yellow)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`
+    : `BMI kau <b style="color:var(--volt)">${b}</b>. Bawah 30, ikut pelan biasa.`;
+}
+function bmiBox(scope, h, w) {
+  return `<div class="bmi"><label><span class="small mute">Tinggi (cm)</span><input type="text" inputmode="decimal" placeholder="170" value="${String(h || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="h"></label>
+    <label><span class="small mute">Berat (kg)</span><input type="text" inputmode="decimal" placeholder="70" value="${String(w || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="w"></label></div>
+    <p class="small bmi-out" id="bmi-${scope}" style="margin:10px 0 0">${bmiNote(calcBmi(h, w))}</p>`;
+}
+let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" };
+function onboardView() {
+  return `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Mula Lari</small></div>
+  <p class="eyebrow">Selamat datang</p><h1>Dari kosong ke 30 minit lari.</h1>
+  <p class="mute" style="margin-top:10px">Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.</p>
+  <h2>1. Saringan kesihatan</h2>
+  <div class="card">
+    <p class="small">Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.</p>
+    <p class="small">Doktor atau physio dulu kalau: sakit belakang atau lutut yang selalu datang balik, penyakit jantung, kencing manis atau buah pinggang (walaupun terkawal).</p>
+    <label class="check" style="border:0;padding-bottom:0"><input type="checkbox" data-act="onb" data-k="safe" ${onb.safe ? "checked" : ""}><span>Aku tak ada semua ni, atau doktor dah bagi ok.</span></label>
+  </div>
+  <h2>2. Sekarang boleh jalan laju 30 minit dengan selesa?</h2>
+  <div class="row" style="gap:8px">
+    <button class="btn ${onb.walk30 === true ? "primary" : ""}" data-act="onb-walk" data-v="1">Boleh</button>
+    <button class="btn ${onb.walk30 === false ? "primary" : ""}" data-act="onb-walk" data-v="0">Belum</button>
+  </div>
+  ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? "Kau mula di Tahap 2: lari-jalan." : "Kau mula di Tahap 1: jalan laju, 2–4 minggu."}</p>`}
+  <h2>3. BMI</h2>
+  <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">Tak nak isi pun tak apa. Data ni simpan dalam phone je.</p></div>
+  <p class="small" id="bmi-onb-warn" style="color:var(--yellow)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.</p>
+  <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? "Mula" : "Jawab soalan atas dulu"}</button>
+  <p class="mute small" style="margin-top:14px">Data simpan dalam phone ni je. Tekan Share → Add to Home Screen supaya ada icon macam app.</p>`;
+}
+
+let resetArmed = false, delArmed = -1;
+function render() {
+  const app = document.getElementById("app");
+  const tabs = document.getElementById("tabs");
+  if (!state.started) { tabs.hidden = true; app.innerHTML = onboardView(); return; }
+  tabs.hidden = false;
+  tabs.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  app.innerHTML = tab === "home" ? homeView() : tab === "log" ? logView() : infoView();
+}
+
+/* ---------- Tekan ---------- */
+document.addEventListener("click", e => {
+  const tb = e.target.closest("[data-tab]");
+  if (tb) { tab = tb.dataset.tab; resetArmed = false; render(); window.scrollTo(0, 0); return; }
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act, i = +el.dataset.i, v = +el.dataset.v;
+  switch (act) {
+    case "sheet-bg": if (e.target === el) closeSheet(); break;
+    case "sheet-close": closeSheet(); render(); break;
+    case "start": startTimer(i); break;
+    case "manual": openLog(i, false); break;
+    case "edit": openLog(i, false); break;
+    case "rpe": pendingRpe = v; el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.toggle("sel", +c.dataset.v === v)); break;
+    case "save-log": {
+      const ex = state.open[i], first = !(ex && ex.done);
+      state.open[i] = { done: true, date: ex && ex.date ? ex.date : today(), rpe: pendingRpe, pain: ex ? ex.pain ?? null : null };
+      save(); closeSheet(); render();
+      if (first) sheet(`<p class="eyebrow">Disimpan</p><h1 style="font-size:24px">Sesi ${i + 1} siap. Syabas!</h1>
+        <p class="mute small" style="margin-top:6px">Bagitahu group. Kawan nampak, kau pun lagi semangat.</p>
+        <button class="btn primary" data-act="share-sess" data-i="${i}">Check-in ke group WhatsApp</button>
+        <button class="btn ghost" data-act="sheet-close">Nanti</button>`);
+      break;
+    }
+    case "share-sess": share(sessText(i)); break;
+    case "share-tests": share(testsText()); break;
+    case "remind": remDraft = null; openRemind(); break;
+    case "rem-day": readRemTime(); remDraft.days = remDraft.days.includes(v) ? remDraft.days.filter(x => x !== v) : [...remDraft.days, v].sort((x, y) => x - y); openRemind(); break;
+    case "rem-ics": case "rem-google": {
+      readRemTime(); if (!remDraft.days.length) break;
+      state.remind = { days: [...remDraft.days], time: remDraft.time }; save();
+      if (act === "rem-google") window.open(remGoogle(state.remind), "_blank");
+      else {
+        const blob = new Blob([remIcs(state.remind)], { type: "text/calendar" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = "sihatlab-lari.ics";
+        a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }
+      closeSheet(); render(); break;
+    }
+    case "test-intro": openTestIntro(); break;
+    case "test-start": closeSheet(); startTimer(-1, testSession()); break;
+    case "test-manual": openTest(false); break;
+    case "test-skip": state.testSkip = true; save(); render(); break;
+    case "test-later": state.testDue = false; save(); render(); break;
+    case "save-test": {
+      const km = num(document.getElementById("tKm").value), run = num(document.getElementById("tRun").value);
+      const cnt = document.getElementById("tSess");
+      const rec = { date: today(), km, run, rpe: pendingRpe, t: state.cur.t, w: state.cur.w };
+      state.tests.push(rec); state.testDue = false;
+      const slot = state.open.findIndex(s => !s || !s.done);
+      if (cnt && cnt.checked && slot >= 0) state.open[slot] = { done: true, date: rec.date, rpe: pendingRpe, pain: null, test: true };
+      save(); closeSheet(); tab = "log"; render(); window.scrollTo(0, 0); break;
+    }
+    case "pain": state.open[i].pain = v; save(); render(); break;
+    case "clear-pain": state.open[i].pain = null; save(); render(); break;
+    case "del":
+      if (delArmed === i) { state.open[i] = null; delArmed = -1; save(); render(); }
+      else { delArmed = i; el.textContent = "Tekan lagi untuk padam"; setTimeout(() => { delArmed = -1; }, 3000); }
+      break;
+    case "close": closeWeek(false); break;
+    case "force-ulang":
+      sheet(`<h1 style="font-size:24px">Ulang minggu ${state.cur.w}?</h1><p class="mute" style="margin-top:8px">Minggu ni ditutup dan kau buat minggu yang sama sekali lagi. Sesi yang dah siap tetap masuk log.</p>
+        <button class="btn primary" data-act="force-ulang-ok">Ya, ulang</button><button class="btn ghost" data-act="sheet-close">Batal</button>`);
+      break;
+    case "force-ulang-ok": closeSheet(); closeWeek(true); break;
+    case "share-week": share(weekText(state.history[+el.dataset.h])); break;
+    case "t-pause":
+      if (!T) break;
+      if (T.paused) { T.end = Date.now() + T.left; T.paused = false; } else { T.left = T.end - Date.now(); T.paused = true; }
+      renderTimer(); break;
+    case "t-skip": if (T && !T.paused) { T.end = Date.now(); tick(); } break;
+    case "t-end":
+      if (!T) break;
+      if (!T.paused) { T.left = T.end - Date.now(); T.paused = true; renderTimer(); }
+      sheet(`<h1 style="font-size:24px">Tamatkan sesi?</h1><p class="mute" style="margin-top:8px">Kalau dah buat hampir semua, simpan sebagai siap. Kalau rasa tak sedap badan, berhenti je, tak apa.</p>
+        <button class="btn primary" data-act="t-save">Simpan sebagai siap</button>
+        <button class="btn" data-act="t-cancel">Batal sesi (tak simpan)</button>
+        <button class="btn ghost" data-act="t-resume">Sambung</button>`);
+      setTimeout(() => { const l = document.querySelector(".sheet"); if (l) l.style.zIndex = 40; }, 0);
+      break;
+    case "t-resume": closeSheet(); if (T) { T.end = Date.now() + T.left; T.paused = false; renderTimer(); } break;
+    case "t-save": { closeSheet(); clearInterval(timerInt); releaseAwake(); const k = T.i, kind = T.kind; T = null; renderTimer(); if (kind === "test") openTest(true); else openLog(k, true); break; }
+    case "t-cancel": closeSheet(); clearInterval(timerInt); releaseAwake(); T = null; renderTimer(); render(); break;
+    case "test-sound": unlockAudio(); cue("r", false); break;
+    case "jump": {
+      const t = +document.getElementById("selT").value; let w = +document.getElementById("selW").value;
+      if (t === 1) w = Math.min(w, 4);
+      if (state.open.some(Boolean) && !confirmJump) { confirmJump = true; el.textContent = "Sesi minggu ni akan dikosongkan. Tekan lagi."; break; }
+      confirmJump = false; state.cur = { t, w }; state.open = [null, null, null]; save(); tab = "home"; render(); break;
+    }
+    case "export": {
+      const blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `sihatlab-mula-lari-${today()}.json`; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000); break;
+    }
+    case "reset":
+      if (resetArmed) { state = fresh(); save(); resetArmed = false; onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" }; render(); }
+      else { resetArmed = true; render(); }
+      break;
+    case "onb-walk": onb.walk30 = v === 1; render(); break;
+    case "onb-go":
+      if (!(onb.safe && onb.walk30 != null)) break;
+      state.started = true; state.bmi30 = onb.bmi30; state.h = onb.h; state.w = onb.w;
+      state.cur = { t: onb.walk30 && !onb.bmi30 ? 2 : 1, w: 1 };
+      save(); tab = "home"; render(); break;
+  }
+});
+let confirmJump = false;
+document.addEventListener("input", e => {
+  const el = e.target.closest("[data-bmi]");
+  if (!el) return;
+  const scope = el.dataset.bmi, obj = scope === "onb" ? onb : state;
+  obj[el.dataset.f] = el.value.trim();
+  const b = calcBmi(obj.h, obj.w);
+  obj.bmi30 = b != null && b >= 30;
+  document.getElementById("bmi-" + scope).innerHTML = bmiNote(b);
+  if (scope === "onb") { const wn = document.getElementById("bmi-onb-warn"); if (wn) wn.hidden = !(onb.bmi30 && onb.walk30); }
+  else save();
+});
+document.addEventListener("change", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  if (el.dataset.act === "set") { state[el.dataset.k] = el.checked; save(); render(); }
+  if (el.dataset.act === "onb") { onb[el.dataset.k] = el.checked; render(); }
+  if (el.dataset.act === "import" && el.files[0]) {
+    el.files[0].text().then(txt => {
+      const d = JSON.parse(txt);
+      if (!d || d.v !== 1 || !d.cur || !Array.isArray(d.history)) throw new Error("bad");
+      state = Object.assign(fresh(), d); save(); tab = "home"; render();
+    }).catch(() => sheet(`<h1 style="font-size:22px">Fail backup tak boleh dibaca</h1><p class="mute" style="margin-top:8px">Pastikan fail tu dari butang "Simpan backup".</p><button class="btn ghost" data-act="sheet-close">OK</button>`));
+  }
+});
+
+render();
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("speechSynthesis" in window) speechSynthesis.getVoices();
+</script>
+</body>
+</html>
