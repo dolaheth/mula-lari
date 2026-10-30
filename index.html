@@ -122,6 +122,14 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .ba div b { display: block; font-size: 22px; letter-spacing: -.5px; }
 .ba .to { color: var(--volt); font-weight: 900; background: none; padding: 0; }
 .invite { border: 1px solid var(--volt); }
+.steps { list-style: none; padding: 0; margin: 10px 0 4px; counter-reset: st; }
+.steps li { counter-increment: st; display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.steps li:first-child { border-top: 0; }
+.steps li::before { content: counter(st); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--volt); color: #000; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.steps svg { width: 18px; height: 18px; vertical-align: -3px; }
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.seg2 button { padding: 9px 0; border-radius: 10px; background: var(--card2); font-weight: 800; font-size: 14px; }
+.seg2 button.sel { background: #FFF; color: #000; }
 .talk { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
 .talk div { background: var(--card2); border-radius: 12px; padding: 10px; font-size: 13px; }
 .talk div.ok { background: var(--volt); color: #000; }
@@ -575,7 +583,7 @@ function homeView() {
   const sk = streak();
   h += `<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap">${sk ? `<span class="pill v">Streak ${sk} minggu</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? "Peringatan: " + remSummary(state.remind) : "+ Set peringatan lari"}</button></div>`;
-  h += inviteCard() + testCard();
+  h += installCard("home") + inviteCard() + testCard();
   if (st.maxP >= 6) h += `<div class="alert red" style="margin-top:14px">Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
   if (needPain.length) h += `<div class="alert volt" style="margin-top:14px">Selamat pagi! Isi sakit untuk sesi ${needPain.map(i => i + 1).join(", ")} di bawah.</div>`;
@@ -668,6 +676,7 @@ function infoView() {
     <select id="selW" style="flex:1;padding:12px;border-radius:12px;background:var(--card2);color:var(--text);border:0;font:inherit">${Array.from({ length: 9 }, (_, i) => i + 1).map(w => `<option value="${w}" ${state.cur.w === w ? "selected" : ""}>Minggu ${w}</option>`).join("")}</select>
   </div><button class="btn ghost" data-act="jump" style="margin-top:8px">Tukar</button>
   <p class="mute small" style="margin-top:8px">Tahap 1 ada 4 minggu, Tahap 2 ada 9 minggu.</p></div>
+  ${isStandalone() ? "" : `<h2>Pasang app</h2>${installCard("info").replace('style="margin-top:14px"', "")}`}
   <h2>Data kau</h2>
   <div class="card">
     <p class="small mute">Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.</p>
@@ -697,11 +706,45 @@ function bmiBox(scope, h, w) {
     <label><span class="small mute">Berat (kg)</span><input type="text" inputmode="decimal" placeholder="70" value="${String(w || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="w"></label></div>
     <p class="small bmi-out" id="bmi-${scope}" style="margin:10px 0 0">${bmiNote(calcBmi(h, w))}</p>`;
 }
+/* ---------- Pasang kat home screen ---------- */
+const UA = navigator.userAgent;
+const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const isIOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const inApp = /FBAN|FBAV|Instagram|Threads|Barcelona|TikTok|musical_ly|Bytedance|Line\//i.test(UA);
+let installEvt = null, installOS = isIOS ? "ios" : "android";
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; render(); });
+window.addEventListener("appinstalled", () => { installEvt = null; state.installHide = true; save(); render(); });
+const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>`;
+function installSteps() {
+  if (inApp) return `<p class="small" style="color:var(--yellow);margin:10px 0 0">Kau buka link ni dalam app lain (Threads, Instagram, TikTok atau Facebook). Tekan ••• kat atas, pilih <b>Open in browser</b> (Safari atau Chrome), lepas tu ikut langkah ni.</p>`;
+  if (installOS === "ios") return `<ol class="steps">
+      <li><span>Buka link ni dalam <b>Safari</b>.</span></li>
+      <li><span>Tekan butang Share ${SHARE_ICON} (kotak dengan anak panah ke atas). Tak nampak? Tekan <b>•••</b> dulu.</span></li>
+      <li><span>Scroll bawah, tekan <b>Add to Home Screen</b> (atau <b>Tambah ke Skrin Utama</b>).</span></li>
+      <li><span>Tekan <b>Add</b>. Lepas ni buka dari icon SihatLab kat home screen.</span></li></ol>`;
+  return `${installEvt ? `<button class="btn primary" data-act="install" style="margin-top:10px">Pasang app (satu tekan)</button><p class="mute small" style="margin:8px 0 0">Tak jadi? Ikut cara manual:</p>` : ""}
+    <ol class="steps">
+      <li><span>Buka link ni dalam <b>Chrome</b>.</span></li>
+      <li><span>Tekan <b>⋮</b> kat atas kanan.</span></li>
+      <li><span>Tekan <b>Add to Home screen</b> atau <b>Install app</b>.</span></li>
+      <li><span>Tekan <b>Install</b> atau <b>Add</b>. Lepas ni buka dari icon SihatLab.</span></li></ol>`;
+}
+function installCard(where) {
+  if (isStandalone()) return "";
+  if (where === "home" && state.installHide) return "";
+  return `<div class="card invite" style="margin-top:14px"><p class="eyebrow">Pasang kat home screen</p>
+    <h3>Buka macam app, ada icon, boleh guna tanpa internet.</h3>
+    <div class="seg2"><button class="${installOS === "ios" ? "sel" : ""}" data-act="install-os" data-os="ios">iPhone</button><button class="${installOS === "android" ? "sel" : ""}" data-act="install-os" data-os="android">Android</button></div>
+    ${installSteps()}
+    <p class="mute small" style="margin:6px 0 0">Penting: log simpan ikut tempat kau buka. Lepas pasang, guna icon tu je, jangan buka link dalam browser lagi.</p>
+    ${where === "home" ? `<button class="link" data-act="install-hide">Dah pasang / sorok</button>` : ""}</div>`;
+}
 let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" };
 function onboardView() {
   return `<div class="top"><img src="logo-white.png" alt="SihatLab"><small>Mula Lari</small></div>
   <p class="eyebrow">Selamat datang</p><h1>Dari kosong ke 30 minit lari.</h1>
   <p class="mute" style="margin-top:10px">Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.</p>
+  ${installCard("onb")}
   <h2>1. Saringan kesihatan</h2>
   <div class="card">
     <p class="small">Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.</p>
@@ -718,7 +761,7 @@ function onboardView() {
   <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">Tak nak isi pun tak apa. Data ni simpan dalam phone je.</p></div>
   <p class="small" id="bmi-onb-warn" style="color:var(--yellow)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.</p>
   <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? "Mula" : "Jawab soalan atas dulu"}</button>
-  <p class="mute small" style="margin-top:14px">Data simpan dalam phone ni je. Tekan Share → Add to Home Screen supaya ada icon macam app.</p>`;
+  <p class="mute small" style="margin-top:14px">Data simpan dalam phone ni je.</p>`;
 }
 
 let resetArmed = false, delArmed = -1;
@@ -756,6 +799,9 @@ document.addEventListener("click", e => {
       break;
     }
     case "share-sess": share(sessText(i)); break;
+    case "install-os": installOS = el.dataset.os; render(); break;
+    case "install-hide": state.installHide = true; save(); render(); break;
+    case "install": if (installEvt) { installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; render(); }); } break;
     case "share-tests": share(testsText()); break;
     case "remind": remDraft = null; openRemind(); break;
     case "rem-day": readRemTime(); remDraft.days = remDraft.days.includes(v) ? remDraft.days.filter(x => x !== v) : [...remDraft.days, v].sort((x, y) => x - y); openRemind(); break;
