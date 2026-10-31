@@ -848,7 +848,7 @@ function infoView() {
   <h2>${L("Settings", "Tetapan")}</h2>
   <div class="card">
     <div class="switch"><span>${L("Language", "Bahasa")}</span><div class="lang"><button data-act="lang" data-l="en" aria-pressed="${state.lang !== "ms"}">English</button><button data-act="lang" data-l="ms" aria-pressed="${state.lang === "ms"}">BM</button></div></div>
-    <div class="switch"><span>${L("Mode", "Mod")}<br><span class="mute small">${L("Runner adds Zones, VDOT and the run log", "Biasa lari tambah Zon HR, VDOT dan log larian")}</span></span><div class="lang"><button data-act="set-mode" data-m="beginner" aria-pressed="${state.mode !== "runner"}">${L("Beginner", "Beginner")}</button><button data-act="set-mode" data-m="runner" aria-pressed="${state.mode === "runner"}">${L("Runner", "Biasa lari")}</button></div></div>
+    <div class="switch"><span>${L("Mode", "Mod")}<br><span class="mute small">${L("Runner adds VDOT and the run log", "Biasa lari tambah VDOT dan log larian")}</span></span><div class="lang"><button data-act="set-mode" data-m="beginner" aria-pressed="${state.mode !== "runner"}">${L("Beginner", "Beginner")}</button><button data-act="set-mode" data-m="runner" aria-pressed="${state.mode === "runner"}">${L("Runner", "Biasa lari")}</button></div></div>
     <label class="switch"><span>${L("Beep sounds", "Bunyi beep")}</span><input type="checkbox" data-act="set" data-k="sound" ${state.sound ? "checked" : ""}></label>
     <label class="switch"><span>${L('Voice ("Run", "Walk")', 'Suara ("Lari", "Jalan")')}</span><input type="checkbox" data-act="set" data-k="voice" ${state.voice ? "checked" : ""}></label>
     <label class="switch"><span>${L("2-minute warm-up moves", "Gerakan pemanasan 2 minit")}<br><span class="mute small">${L("Leg swings, ankles, calf raises. Built into the timer.", "Ayun kaki, buku lali, jengket. Dalam timer.")}</span></span><input type="checkbox" data-act="set" data-k="moves" ${state.moves ? "checked" : ""}></label>
@@ -1065,7 +1065,7 @@ function onboardView() {
     <button class="btn ${onb.mode === "beginner" ? "primary" : ""}" data-act="onb-mode" data-m="beginner">${L("Beginner", "Beginner")}</button>
     <button class="btn ${onb.mode === "runner" ? "primary" : ""}" data-act="onb-mode" data-m="runner">${L("I already run", "Dah biasa lari")}</button>
   </div>
-  ${onb.mode ? `<p class="mute small" style="margin-top:8px">${onb.mode === "runner" ? L("You get the run log, HR zones, MAF and VDOT. You can switch any time in Settings.", "Kau dapat log larian, zon HR, MAF dan VDOT. Boleh tukar bila-bila dalam Tetapan.") : L("Simple mode: the step-by-step plan from walking to running 30 minutes.", "Mod ringkas: pelan langkah demi langkah dari jalan ke lari 30 minit.")}</p>` : ""}
+  ${onb.mode ? `<p class="mute small" style="margin-top:8px">${onb.mode === "runner" ? L("You also get the run log and VDOT. You can switch any time in Settings.", "Kau dapat log larian dan VDOT sekali. Boleh tukar bila-bila dalam Tetapan.") : L("Simple mode: the step-by-step plan from walking to running 30 minutes.", "Mod ringkas: pelan langkah demi langkah dari jalan ke lari 30 minit.")}</p>` : ""}
   <h2>${L("1. Health check", "1. Saringan kesihatan")}</h2>
   <div class="card">
     <p class="small">${L("See a doctor first if you have: chest pain, unusual shortness of breath, dizziness or fainting, swollen ankles, a racing or irregular heartbeat, or leg pain when walking.", "Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.")}</p>
@@ -1094,9 +1094,9 @@ function render() {
   tabs.hidden = false;
   const names = { home: L("Today", "Hari ni"), log: "Log", hr: L("Zones", "Zon HR"), pace: "VDOT", info: L("Guide", "Panduan") };
   const runner = isRunner();
-  if (!runner && (tab === "hr" || tab === "pace")) tab = "home";
+  if (!runner && tab === "pace") tab = "home";
   let shown = 0;
-  tabs.querySelectorAll("button").forEach(b => { const hide = !runner && (b.dataset.tab === "hr" || b.dataset.tab === "pace"); b.hidden = hide; if (!hide) shown++; b.classList.toggle("on", b.dataset.tab === tab); b.querySelector("span").textContent = names[b.dataset.tab]; });
+  tabs.querySelectorAll("button").forEach(b => { const hide = !runner && b.dataset.tab === "pace"; b.hidden = hide; if (!hide) shown++; b.classList.toggle("on", b.dataset.tab === tab); b.querySelector("span").textContent = names[b.dataset.tab]; });
   tabs.querySelector(".in").style.gridTemplateColumns = `repeat(${shown}, 1fr)`;
   app.innerHTML = tab === "home" ? homeView() : tab === "log" ? logView() : tab === "hr" ? hrView() : tab === "pace" ? paceView() : infoView();
 }
