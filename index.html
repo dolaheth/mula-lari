@@ -449,7 +449,7 @@ function inviteCard() {
   const href = CLASS_URL || THREADS_URL;
   return `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${href}" target="_blank" rel="noopener">
     <p class="eyebrow">${L("Next step", "Langkah seterusnya")}</p><h3>${L("You can run 30 minutes now. Go for your first 5K with a coach.", "Dah boleh lari 30 minit. Jom kejar 5K pertama dengan coach.")}</h3>
-    <p class="mute small">${L("SihatLab online class: 8 live classes, Sundays 8:30pm, tests in week 1 and 12.", "Kelas online SihatLab: 8 kelas live, Ahad 8:30 malam, ujian minggu 1 dan 12.")}</p>
+    <p class="mute small">${L("SihatLab online class: 8 live classes, Sundays 9pm, tests in week 1 and 12.", "Kelas online SihatLab: 8 kelas live, Ahad 9 malam, ujian minggu 1 dan 12.")}</p>
     <span class="btn primary" style="margin-top:12px">${CLASS_URL ? L("Join the class", "Daftar kelas") : L('DM "KELAS" on Threads', 'DM "KELAS" kat Threads')}</span></a>`;
 }
 function share(text) {
@@ -657,7 +657,7 @@ function homeView() {
   else if (st.missing) h += `<p class="small">${L("First rate next-morning pain for every session you've done.", "Isi sakit esok pagi untuk semua sesi yang siap dulu.")}</p>`;
   else h += `<p class="small">${L("Finish at least 2 sessions first.", "Siapkan sekurang-kurangnya 2 sesi dulu.")}</p>`;
   h += `<button class="link" data-act="force-ulang">${L("No time this week? Repeat the week", "Tak sempat minggu ni? Ulang minggu")}</button></div>`;
-  if (CLASS_URL && !state.passes.t2) h += `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">${L("SihatLab online class", "Kelas online SihatLab")}</p><h3>${L("Want to do it with a coach and friends?", "Nak buat dengan coach dan kawan-kawan?")}</h3><p class="mute small">${L("8 live classes, Sundays 8:30pm. Tap to sign up →", "8 kelas live, Ahad 8:30 malam. Tekan untuk daftar →")}</p></a>`;
+  if (CLASS_URL && !state.passes.t2) h += `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">${L("SihatLab online class", "Kelas online SihatLab")}</p><h3>${L("Want to do it with a coach and friends?", "Nak buat dengan coach dan kawan-kawan?")}</h3><p class="mute small">${L("8 live classes, Sundays 9pm. Tap to sign up →", "8 kelas live, Ahad 9 malam. Tekan untuk daftar →")}</p></a>`;
   return h;
 }
 
