@@ -233,6 +233,8 @@ const SOCIAL = [
   ["Instagram", "https://www.instagram.com/abdullahadnan___/"],
   ["Threads", "https://www.threads.net/@abdullahadnan___"]];
 const WA_GROUP = "https://chat.whatsapp.com/JCdYuTWG7ao2ZiEO7Abf56";
+// Coach's WhatsApp number, digits only with country code (e.g. "60123456789"). Empty = "send to coach" button hidden.
+const COACH_WA = "";
 
 /* ---------- Language: English first, BM on the switch ---------- */
 const L = (en, ms) => (state && state.lang === "ms" ? ms : en);
@@ -502,6 +504,45 @@ function testCard() {
     <button class="btn primary" data-act="test-intro" style="margin-top:12px">${L("Do the first test", "Buat ujian awal")}</button><button class="link" data-act="test-skip">${L("Skip for now", "Langkau dulu")}</button></div>`;
   return "";
 }
+/* Send progress to the coach on WhatsApp (only when the user taps it) */
+function progressText() {
+  const lines = ["SihatLab Mula Lari · Progress", `${L("Name", "Nama")}: ${state.name || "-"}`];
+  if (isRunner()) {
+    lines.push(L("Mode: runner", "Mod: pelari"));
+    const t5 = mtList("5k"), tm = mtList("maf");
+    if (t5.length) { const a = t5[0], b = t5[t5.length - 1]; lines.push(`5K: ${b.time} (VDOT ${vdotOf(5000, parseTime(b.time)).toFixed(1)}, ${nice(b.date)})` + (t5.length > 1 ? ` · ${L("first", "pertama")} ${a.time}` : "")); }
+    if (tm.length) { const a = tm[0], b = tm[tm.length - 1]; lines.push(`MAF: ${mmss(parseTime(b.time) * 12)}/km${b.hr ? ` @ ${b.hr} bpm` : ""} (${nice(b.date)})` + (tm.length > 1 ? ` · ${L("first", "pertama")} ${mmss(parseTime(a.time) * 12)}/km` : "")); }
+    const wk = weekKm(); lines.push(L(`This week ${wk[7].km.toFixed(1)} km · last week ${wk[6].km.toFixed(1)} km`, `Minggu ni ${wk[7].km.toFixed(1)} km · minggu lepas ${wk[6].km.toFixed(1)} km`));
+  } else {
+    const st = weekStats(state.open);
+    lines.push(L("Mode: beginner", "Mod: beginner"), label(state.cur.t, state.cur.w), L(`This week: ${st.n}/3 sessions`, `Minggu ni: ${st.n}/3 sesi`) + (st.n ? L(` · highest pain ${st.maxP}/10`, ` · sakit paling tinggi ${st.maxP}/10`) : ""));
+    lines.push(L(`Weeks closed: ${state.history.length}`, `Minggu ditutup: ${state.history.length}`));
+    if (state.tests.length) { const a = state.tests[0], b = state.tests[state.tests.length - 1]; lines.push(L("20-min test: ", "Ujian 20 minit: ") + `${a.km ?? "-"} km → ${b.km ?? "-"} km`); }
+  }
+  const sk = streak(); if (sk) lines.push(L(`Streak: ${sk} weeks`, `Streak: ${sk} minggu`));
+  return lines.join("\n");
+}
+function coachCard() {
+  if (!COACH_WA) return "";
+  return `<div class="card" style="box-shadow:0 0 0 2px #25D366"><p class="eyebrow">${L("Coach check-in", "Semakan coach")}</p>
+    <h3>${L("Send your progress to Coach Dollah on WhatsApp.", "Hantar progress kau kat Coach Dollah melalui WhatsApp.")}</h3>
+    <button class="wa" data-act="coach-open" style="width:100%;border:0">${L("Send progress to coach", "Hantar progress ke coach")}</button></div>`;
+}
+function openCoach() {
+  const v = String(state.name || "").replace(/"/g, "");
+  sheet(`<p class="eyebrow">${L("Coach check-in", "Semakan coach")}</p><h1 style="font-size:24px">${L("Send to Coach Dollah", "Hantar ke Coach Dollah")}</h1>
+    <label style="display:block;margin-top:12px"><span class="small mute">${L("Your name", "Nama kau")}</span><input id="cName" class="field" value="${v}" placeholder="${L("Name", "Nama")}" data-coach="1"></label>
+    <pre id="cPrev" style="white-space:pre-wrap;font:inherit;font-size:13px;background:var(--card2);border-radius:14px;padding:12px;margin:12px 0 0">${esc(progressText())}</pre>
+    <a class="wa" id="cGo" href="https://wa.me/${COACH_WA}?text=${encodeURIComponent(progressText())}" target="_blank" rel="noopener">${L("Open WhatsApp", "Buka WhatsApp")}</a>
+    <p class="mute small" style="margin:8px 0 0">${L("Nothing is sent until you press Send in WhatsApp.", "Tiada apa dihantar sampai kau tekan Send dalam WhatsApp.")}</p>
+    <button class="btn ghost" data-act="sheet-close" style="margin-top:8px">${L("Cancel", "Batal")}</button>`);
+}
+document.addEventListener("input", e => {
+  if (!e.target.closest("[data-coach]")) return;
+  state.name = e.target.value.slice(0, 40); save();
+  const t = progressText(); document.getElementById("cPrev").textContent = t;
+  document.getElementById("cGo").href = `https://wa.me/${COACH_WA}?text=${encodeURIComponent(t)}`;
+});
 function socialCard() {
   return `<div class="card invite"><p class="eyebrow">${L("Follow & support", "Follow & sokong")}</p>
     <h3>${L("Free running tips every week. Follow Coach Dollah.", "Tips lari free setiap minggu. Follow Coach Dollah.")}</h3>
@@ -693,7 +734,7 @@ function runnerHome() {
       <button class="pill v" data-act="mt-new" data-k="${k}" style="align-self:center">+ ${L("Result", "Result")}</button></div>`;
   }).join("")}<button class="link" data-tab="log">${L("See all results and progress →", "Tengok semua result dan progress →")}</button></div>`;
   h += `<div class="card"><div class="row between"><div><p class="eyebrow" style="margin:0">${L("Run log", "Log larian")}</p><b style="font-size:22px">${wk[7].km.toFixed(1)} km</b> <span class="small mute">${L("this week", "minggu ni")}</span></div><button class="pill v" data-act="run-new" style="padding:10px 14px">${L("+ Add run", "+ Larian")}</button></div></div>`;
-  return h + inviteCard() + socialCard();
+  return h + inviteCard() + coachCard() + socialCard();
 }
 function homeView() {
   if (isRunner()) return runnerHome();
@@ -741,7 +782,7 @@ function homeView() {
   else if (st.missing) h += `<p class="small">${L("First rate next-morning pain for every session you've done.", "Isi sakit esok pagi untuk semua sesi yang siap dulu.")}</p>`;
   else h += `<p class="small">${L("Finish at least 2 sessions first.", "Siapkan sekurang-kurangnya 2 sesi dulu.")}</p>`;
   h += `<button class="link" data-act="force-ulang">${L("No time this week? Repeat the week", "Tak sempat minggu ni? Ulang minggu")}</button></div>`;
-  h += socialCard();
+  h += coachCard() + socialCard();
   if (CLASS_URL && !state.passes.t2) h += `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">${L("SihatLab online class", "Kelas online SihatLab")}</p><h3>${L("Want to do it with a coach and friends?", "Nak buat dengan coach dan kawan-kawan?")}</h3><p class="mute small">${L("8 live classes, Sundays 9pm. Tap to sign up →", "8 kelas live, Ahad 9 malam. Tekan untuk daftar →")}</p></a>`;
   return h;
 }
@@ -1216,6 +1257,7 @@ document.addEventListener("click", e => {
     case "hr-mode": state.hrMode = el.dataset.m === "kv" ? "kv" : "pct"; save(); render(); break;
     case "vd-dist": state.vdDist = v; save(); render(); break;
     case "maf-adj": state.mafAdj = v; save(); render(); break;
+    case "coach-open": openCoach(); break;
     case "mt-pick": state.mtPick = el.dataset.k; save(); render(); break;
     case "mt-new": mtDraft = { kind: el.dataset.k, date: today(), time: "", hr: "" }; openMT(); break;
     case "mt-save": {
