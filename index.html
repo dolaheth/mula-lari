@@ -762,10 +762,11 @@ function vdotOf(dist, min) {
 }
 const mmss = sec => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 function mtList(kind) { return (state.mtests || []).filter(t => t.kind === kind && parseTime(t.time)).sort((a, b) => a.date.localeCompare(b.date)); }
-function mtDue() {
-  const all = (state.mtests || []).map(t => t.date).sort();
-  if (!all.length) return "first";
-  const next = pd(all[all.length - 1]); next.setDate(next.getDate() + 28);
+const MT_EVERY = { maf: 28, "5k": 56 }; // MAF every 4 weeks, 5K every 8 weeks
+function mtDueKind(kind) {
+  const xs = (state.mtests || []).filter(t => t.kind === kind).map(t => t.date).sort();
+  if (!xs.length) return "first";
+  const next = pd(xs[xs.length - 1]); next.setDate(next.getDate() + MT_EVERY[kind]);
   return ds(next) <= today() ? "due" : null;
 }
 function verdict(a, b, tol) { // smaller time = better
@@ -789,7 +790,7 @@ function mtBlock(kind) {
   if (xs.length > 1) {
     const [vt, vc] = verdict(sec(prev), sec(last), tol), [ft, fc] = verdict(sec(first), sec(last), tol);
     h += `<div class="ba" style="margin-top:10px"><div><span class="small mute">${L("First", "Pertama")} · ${nice(first.date)}</span><b style="font-size:18px">${is5 ? first.time : mmss(sec(first) / 5)}</b></div><span class="to">→</span><div><span class="small mute">${L("Latest", "Terkini")} · ${nice(last.date)}</span><b style="font-size:18px">${is5 ? last.time : mmss(sec(last) / 5)}</b></div></div>
-      <p style="margin:6px 0 0"><span class="pill ${vc}">${L("vs last month", "vs bulan lepas")}: ${vt}</span><span class="pill ${fc}">${L("vs first", "vs pertama")}: ${ft}</span></p>`;
+      <p style="margin:6px 0 0"><span class="pill ${vc}">${L("vs last test", "vs ujian lepas")}: ${vt}</span><span class="pill ${fc}">${L("vs first", "vs pertama")}: ${ft}</span></p>`;
   }
   const mx = Math.max(...xs.map(sec)), mn = Math.min(...xs.map(sec));
   h += `<div class="kmbars" style="grid-template-columns:repeat(${Math.min(xs.length, 12)},1fr);height:80px">${xs.slice(-12).map((t, i, arr) => `<div><i class="${i === arr.length - 1 ? "now" : ""}" style="height:${mx === mn ? 60 : Math.round(30 + (mx - sec(t)) / (mx - mn) * 60)}%"></i></div>`).join("")}</div>
@@ -799,15 +800,21 @@ function mtBlock(kind) {
 }
 function mtSection() {
   return `<h2>${L("Monthly test", "Ujian bulanan")}</h2><div class="card">
-    <p class="small mute" style="margin:0 0 6px">${L("No plan needed. Test once every 4 weeks and see if you're improving.", "Tak perlu pelan. Buat ujian setiap 4 minggu, tengok improve ke tak.")}</p>
+    <p class="small mute" style="margin:0 0 6px">${L("No plan needed. MAF test every 4 weeks, 5K test every 8 weeks. See if you're improving.", "Tak perlu pelan. Ujian MAF setiap 4 minggu, ujian 5K setiap 8 minggu. Tengok improve ke tak.")}</p>
     ${mtBlock("5k")}${mtBlock("maf")}</div>`;
 }
 function mtCard() {
-  const due = mtDue();
-  if (!due) return "";
-  return `<div class="card invite"><p class="eyebrow">${due === "first" ? L("First test", "Ujian pertama") : L("Monthly test time", "Masa ujian bulanan")}</p>
-    <h3>${due === "first" ? L("Set your baseline: a 5K test and a MAF test.", "Set titik mula: ujian 5K dan ujian MAF.") : L("4 weeks since your last test. Test again and see if you've improved.", "Dah 4 minggu sejak ujian lepas. Ulang dan tengok improve ke tak.")}</h3>
-    <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" data-act="mt-new" data-k="5k">${L("5K test", "Ujian 5K")}</button><button class="btn" data-act="mt-new" data-k="maf" style="background:#2C2C2E;color:#fff">${L("MAF test", "Ujian MAF")}</button></div></div>`;
+  const d5 = mtDueKind("5k"), dm = mtDueKind("maf");
+  if (!d5 && !dm) return "";
+  const first = d5 === "first" && dm === "first";
+  const want = [d5 ? "5k" : null, dm ? "maf" : null].filter(Boolean);
+  const btn = (k, i) => `<button class="btn ${i === 0 ? "primary" : ""}" data-act="mt-new" data-k="${k}" ${i === 0 ? "" : 'style="background:#2C2C2E;color:#fff"'}>${k === "5k" ? L("5K test", "Ujian 5K") : L("MAF test", "Ujian MAF")}</button>`;
+  const title = first ? L("Set your baseline: a 5K test and a MAF test.", "Set titik mula: ujian 5K dan ujian MAF.")
+    : want.length === 2 ? L("Time for both: your 5K test (every 8 weeks) and MAF test (every 4 weeks).", "Masa untuk dua-dua: ujian 5K (setiap 8 minggu) dan ujian MAF (setiap 4 minggu).")
+    : want[0] === "maf" ? L("4 weeks since your last MAF test. Test again and see if you've improved.", "Dah 4 minggu sejak ujian MAF lepas. Ulang dan tengok improve ke tak.")
+    : L("8 weeks since your last 5K test. Time to see your new VDOT.", "Dah 8 minggu sejak ujian 5K lepas. Masa tengok VDOT baru.");
+  return `<div class="card invite"><p class="eyebrow">${first ? L("First test", "Ujian pertama") : L("Test time", "Masa ujian")}</p><h3>${title}</h3>
+    <div class="row" style="gap:8px;margin-top:12px">${want.map(btn).join("")}</div></div>`;
 }
 function openMT() {
   const d = mtDraft, v = x => String(x ?? "").replace(/"/g, ""), is5 = d.kind === "5k";
