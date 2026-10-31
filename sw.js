@@ -1,5 +1,5 @@
 // Simpan fail app dalam phone supaya boleh buka tanpa internet.
-const CACHE = "mula-lari-v4";
+const CACHE = "mula-lari-v5";
 const FILES = ["./", "index.html", "manifest.webmanifest", "logo-dark.png", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

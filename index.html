@@ -152,6 +152,14 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .seg2 button.sel { background: var(--ink); color: #fff; }
 .talk { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 8px 0; }
 .talk div { background: var(--card2); border-radius: 14px; padding: 10px; font-size: 13px; }
+.zones { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+.zones td { padding: 8px 6px; border-top: 1px solid var(--line); vertical-align: middle; }
+.zones td.z { font-weight: 900; width: 44px; }
+.zones td.b { font-weight: 800; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+.zones tr.on td { background: var(--volt); color: #000; }
+.zones tr.on td:first-child { border-radius: 10px 0 0 10px; } .zones tr.on td:last-child { border-radius: 0 10px 10px 0; }
+.maf { display: flex; justify-content: space-between; align-items: center; background: #000; color: #fff; border-radius: 16px; padding: 14px 16px; margin-top: 12px; }
+.maf b { font-size: 30px; letter-spacing: -1px; color: var(--volt); }
 .talk div.ok { background: var(--volt); color: #000; }
 .warnt { color: var(--warn); }
 /* language switch, same as the website nav */
@@ -725,6 +733,10 @@ function infoView() {
   <div class="talk"><div><b>${L("Can sing", "Boleh nyanyi")}</b><br>${L("Too easy", "Terlalu senang")}</div><div class="ok"><b>${L("Full sentences", "Ayat penuh")}</b><br>${L("Just right", "Betul")}</div><div><b>${L("2–3 words", "2–3 perkataan")}</b><br>${L("Too fast", "Terlalu laju")}</div></div>
   <p class="mute small">${L("Running slower than a brisk walk is completely fine.", "Lari lebih perlahan dari jalan laju pun tak apa.")}</p>
   ${hrSection()}
+  <h2>${L("Your heart rate zones", "Zon heart rate kau")}</h2>
+  <div class="card">${hrBox()}</div>
+  <h2>${L("VDOT and training paces", "VDOT dan pace latihan")}</h2>
+  <div class="card">${vdotBox()}</div>
   <h2>${L("Pain scale (next morning)", "Skala sakit (esok pagi)")}</h2>
   <div class="card"><p><span class="pill g">0–2</span> ${L("Keep following the plan.", "Teruskan ikut pelan.")}</p><p><span class="pill y">3–5</span> ${L("Repeat that week first.", "Ulang minggu tu dulu.")}</p><p style="margin:0"><span class="pill r">6+</span> ${L("Or sharp pain, swelling, limping: stop and see a physio.", "Atau sakit tajam, bengkak, terhincut: berhenti dan jumpa physio.")}</p></div>
   <h2>${L("Settings", "Tetapan")}</h2>
@@ -838,6 +850,78 @@ function bmiNote(b) {
     ? L(`Your BMI is <b style="color:var(--warn)">${b}</b>. That's 30 or more, so the plan uses the BMI 30+ version (gentler on your knees).`, `BMI kau <b style="color:var(--warn)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`)
     : L(`Your BMI is <b style="color:var(--good)">${b}</b>. Under 30, so you follow the normal plan.`, `BMI kau <b style="color:var(--good)">${b}</b>. Bawah 30, ikut pelan biasa.`);
 }
+/* Heart rate zones (same as course Bab 2 and 3) */
+const ZN = () => [
+  ["Z1", L("Recovery · can sing", "Recovery · boleh menyanyi")],
+  ["Z2", L("Aerobic base · full sentences", "Aerobic base · ayat penuh")],
+  ["Z3", L("Tempo · short sentences", "Tempo · ayat pendek")],
+  ["Z4", L("Threshold · 2–3 words", "Threshold · 2–3 perkataan")],
+  ["Z5", L("VO2max · can't talk", "VO2max · tak boleh cakap")]];
+function hrCalc() {
+  const age = parseInt(state.age, 10), rest = parseInt(state.rhr, 10);
+  if (!(age >= 12 && age <= 90)) return null;
+  const max = Math.round(208 - 0.7 * age);
+  const kv = rest >= 30 && rest <= 110 && rest < max;
+  const at = p => Math.round(kv ? (max - rest) * p + rest : max * p);
+  const cuts = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
+  return { max, kv, maf: 180 - age + (+state.mafAdj || 0), z: ZN().map((n, i) => [n[0], n[1], at(cuts[i]), at(cuts[i + 1])]) };
+}
+function hrOut() {
+  const r = hrCalc();
+  if (!r) return `<p class="mute small" style="margin:10px 0 0">${L("Enter your age and your zones appear.", "Isi umur, zon keluar sendiri.")}</p>`;
+  return `<p class="small" style="margin:10px 0 0">${L("Max HR", "HR maksimum")} <b>${r.max}</b> bpm (208 − 0.7 × ${L("age", "umur")})${r.kv ? L(" · Karvonen with your resting HR", " · Karvonen guna HR rehat") : ""}</p>
+    <table class="zones">${r.z.map(([n, d, a, b]) => `<tr class="${n === "Z2" ? "on" : ""}"><td class="z">${n}</td><td>${d}</td><td class="b">${a}–${b}</td></tr>`).join("")}</table>
+    <p class="small mute" style="margin:8px 0 0">${L("Most runs in Zone 2: you can still talk in full sentences.", "Kebanyakan larian dalam Zone 2: masih boleh cakap ayat penuh.")}</p>
+    <div class="maf"><div><p style="margin:0;font-weight:700">MAF</p><p class="small" style="margin:0;color:#A1A1A6">${L("Easy-run ceiling", "Had HR easy run")} · 180 − ${L("age", "umur")}${+state.mafAdj ? (+state.mafAdj > 0 ? " + 5" : " − 5") : ""}</p></div><b>${r.maf}</b></div>`;
+}
+function hrBox() {
+  const v = x => String(x || "").replace(/"/g, "");
+  const adj = +state.mafAdj || 0;
+  return `<div class="bmi"><label><span class="small mute">${L("Age", "Umur")}</span><input type="text" inputmode="numeric" placeholder="30" value="${v(state.age)}" data-hr="age"></label>
+    <label><span class="small mute">${L("Resting HR (optional)", "HR rehat (pilihan)")}</span><input type="text" inputmode="numeric" placeholder="60" value="${v(state.rhr)}" data-hr="rhr"></label></div>
+    <p class="small mute" style="margin:10px 0 4px">MAF</p>
+    <div class="seg2" style="grid-template-columns:repeat(3,1fr);margin-top:0">
+      <button class="${adj === -5 ? "sel" : ""}" data-act="maf-adj" data-v="-5">${L("New / injured −5", "Baru / injury −5")}</button>
+      <button class="${adj === 0 ? "sel" : ""}" data-act="maf-adj" data-v="0">${L("Normal", "Biasa")}</button>
+      <button class="${adj === 5 ? "sel" : ""}" data-act="maf-adj" data-v="5">${L("2+ yrs, no injury +5", "2+ tahun +5")}</button></div>
+    <div id="hr-out">${hrOut()}</div>
+    <p class="small mute" style="margin:10px 0 0">${L("Formulas are estimates. Your watch may use another method. Measure resting HR in the morning before getting up.", "Formula cuma anggaran. Jam korang mungkin guna kaedah lain. Ukur HR rehat pagi, sebelum bangun dari katil.")}</p>`;
+}
+/* VDOT (Jack Daniels), same as course Bab 4: 5K 21:00 -> VDOT 47 */
+function parseTime(t) {
+  const p = String(t || "").trim().split(":").map(Number);
+  if (!p.length || p.some(x => !isFinite(x))) return null;
+  const sec = p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : p[0] * 60;
+  return sec > 0 ? sec / 60 : null;
+}
+function vdotCalc() {
+  const d = +state.vdDist || 5000, t = parseTime(state.vdTime);
+  if (!t || d / t > 450 || d / t < 80) return null;
+  const v = d / t, vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v;
+  const pct = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+  const vd = vo2 / pct;
+  const pace = f => { const vv = (-0.182258 + Math.sqrt(0.182258 ** 2 + 4 * 0.000104 * (vd * f + 4.6))) / (2 * 0.000104); const sec = Math.round(60000 / vv); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; };
+  return { vd, rows: [
+    ["Easy", `${pace(0.70)}–${pace(0.65)}`, L("Most of your runs", "Kebanyakan larian")],
+    ["Marathon", pace(0.82), L("Long steady runs", "Larian panjang sekata")],
+    ["Threshold", pace(0.88), L("Comfortably hard, 20 min", "Selesa tapi keras, 20 minit")],
+    ["Interval", pace(0.975), L("3–5 min repeats", "Ulangan 3–5 minit")],
+    ["Repetition", pace(1.05), L("Short fast reps, full rest", "Pecutan pendek, rehat penuh")]] };
+}
+function vdotOut() {
+  const r = vdotCalc();
+  if (!r) return `<p class="mute small" style="margin:10px 0 0">${L("Enter a race time, e.g. 28:30 for 5K.", "Isi masa race, contoh 28:30 untuk 5K.")}</p>`;
+  return `<div class="maf"><div><p style="margin:0;font-weight:700">VDOT</p><p class="small" style="margin:0;color:#A1A1A6">${L("Your current fitness", "Fitness kau sekarang")}</p></div><b>${r.vd.toFixed(1)}</b></div>
+    <table class="zones">${r.rows.map(([n, p, d]) => `<tr class="${n === "Easy" ? "on" : ""}"><td style="font-weight:800">${n}</td><td class="small">${d}</td><td class="b">${p} /km</td></tr>`).join("")}</table>`;
+}
+function vdotBox() {
+  const d = +state.vdDist || 5000;
+  return `<p class="small mute" style="margin:0 0 8px">${L("Beginners don't need VDOT yet: effort and HR are enough. Use it once you can run a 5K all-out.", "Beginner belum perlu VDOT, cukup RPE dan HR. Guna bila dah boleh lari 5K sepenuhnya.")}</p>
+    <div class="seg2" style="grid-template-columns:repeat(3,1fr);margin-top:0">${[[5000, "5K"], [10000, "10K"], [21097, "21K"]].map(([m, n]) => `<button class="${d === m ? "sel" : ""}" data-act="vd-dist" data-v="${m}">${n}</button>`).join("")}</div>
+    <label style="display:block;margin-top:10px"><span class="small mute">${L("Race time (mm:ss or h:mm:ss)", "Masa race (mm:ss atau j:mm:ss)")}</span><input type="text" class="field" inputmode="numeric" placeholder="28:30" value="${String(state.vdTime || "").replace(/"/g, "")}" data-vd="1" style="margin-top:4px"></label>
+    <div id="vd-out">${vdotOut()}</div>
+    <p class="small mute" style="margin:10px 0 0">${L("Train at your current fitness, not your goal. When VDOT goes up, the paces follow.", "Train ikut fitness sekarang, bukan impian. Bila VDOT naik, pace ikut naik.")}</p>`;
+}
 function bmiBox(scope, h, w) {
   return `<div class="bmi"><label><span class="small mute">${L("Height (cm)", "Tinggi (cm)")}</span><input type="text" inputmode="decimal" placeholder="170" value="${String(h || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="h"></label>
     <label><span class="small mute">${L("Weight (kg)", "Berat (kg)")}</span><input type="text" inputmode="decimal" placeholder="70" value="${String(w || "").replace(/"/g, "")}" data-bmi="${scope}" data-f="w"></label></div>
@@ -923,6 +1007,8 @@ document.addEventListener("click", e => {
   if (!el) return;
   const act = el.dataset.act, i = +el.dataset.i, v = +el.dataset.v;
   switch (act) {
+    case "vd-dist": state.vdDist = v; save(); render(); break;
+    case "maf-adj": state.mafAdj = v; save(); render(); break;
     case "lang": state.lang = el.dataset.l === "ms" ? "ms" : "en"; save(); render(); break;
     case "hr": { const h = hrState(), k = el.dataset.k; h[k] = (k === "adj" || k === "wx") ? v : el.dataset.v; save(); const box = document.getElementById("hrcalc"); if (box) box.innerHTML = hrCalc(); break; }
     case "sheet-bg": if (e.target === el) closeSheet(); break;
@@ -1029,6 +1115,19 @@ document.addEventListener("click", e => {
   }
 });
 let confirmJump = false;
+document.addEventListener("input", e => {
+  const el = e.target.closest("[data-vd]");
+  if (!el) return;
+  state.vdTime = el.value.replace(/[^0-9:]/g, "").slice(0, 8); save();
+  const o = document.getElementById("vd-out"); if (o) o.innerHTML = vdotOut();
+});
+document.addEventListener("input", e => {
+  const el = e.target.closest("[data-hr]");
+  if (!el) return;
+  state[el.dataset.hr] = el.value.replace(/[^0-9]/g, "").slice(0, 3);
+  save();
+  const o = document.getElementById("hr-out"); if (o) o.innerHTML = hrOut();
+});
 document.addEventListener("input", e => {
   const hi = e.target.closest("[data-hr]");
   if (hi) { hrState()[hi.dataset.hr] = hi.value.trim(); save(); const o = document.getElementById("hr-out"); if (o) o.innerHTML = hrOut(); return; }
