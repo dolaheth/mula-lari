@@ -235,6 +235,8 @@ const SOCIAL = [
 const WA_GROUP = "https://chat.whatsapp.com/JCdYuTWG7ao2ZiEO7Abf56";
 // Coach's WhatsApp number, digits only with country code (e.g. "60123456789"). Empty = "send to coach" button hidden.
 const COACH_WA = "601116461957";
+// GoatCounter code (free, no personal data). e.g. "sihatlab" for sihatlab.goatcounter.com. Empty = no counting.
+const GC_CODE = "";
 
 /* ---------- Language: English first, BM on the switch ---------- */
 const L = (en, ms) => (state && state.lang === "ms" ? ms : en);
@@ -353,8 +355,9 @@ function decide() {
 function closeWeek(forceUlang) {
   const r = forceUlang ? { d: "ulang", next: { ...state.cur }, title: L(`Repeat week ${state.cur.w}`, `Ulang minggu ${state.cur.w}`), msg: L("No problem. Do this week again when you're ready.", "Takpe. Ulang minggu ni bila dah sedia.") } : decide();
   state.history.push({ t: state.cur.t, w: state.cur.w, sessions: state.open, d: r.d, date: today() });
-  if (r.d === "lulus1") { state.passes.t1 = today(); state.testDue = true; }
-  if (r.d === "lulus2") { state.passes.t2 = today(); state.testDue = true; }
+  gc("week-closed-" + state.cur.t + "-" + state.cur.w);
+  if (r.d === "lulus1") { state.passes.t1 = today(); state.testDue = true; gc("pass-1"); }
+  if (r.d === "lulus2") { state.passes.t2 = today(); state.testDue = true; gc("pass-2"); }
   state.cur = r.next; state.open = [null, null, null];
   save(); render();
   showDecision(r, state.history[state.history.length - 1]);
@@ -538,6 +541,7 @@ function openCoach() {
     <button class="btn ghost" data-act="sheet-close" style="margin-top:8px">${L("Cancel", "Batal")}</button>`);
 }
 document.addEventListener("input", e => {
+  if (e.target.closest("[data-onbname]")) { state.name = e.target.value.slice(0, 40); save(); return; }
   if (!e.target.closest("[data-coach]")) return;
   state.name = e.target.value.slice(0, 40); save();
   const t = progressText(); document.getElementById("cPrev").textContent = t;
@@ -692,7 +696,8 @@ function showDecision(r, h) {
     <p style="margin-top:8px">${r.msg}</p>
     ${r.d === "stop" ? `<div class="alert red">${L("Chest pain, dizziness or breathlessness that won't settle? Call 999.", "Sakit dada, pening atau sesak nafas yang tak reda? Telefon 999.")}</div>` : ""}
     ${big ? `<p class="small mute">${L("This week, repeat the 20-minute test to compare with your first one.", "Minggu ni, ulang ujian 20 minit untuk tengok beza dengan ujian awal.")}</p>` : ""}
-    <button class="btn primary" data-act="share-week" data-h="${state.history.length - 1}" style="margin-top:10px">${L("Share to WhatsApp group", "Kongsi ke group WhatsApp")}</button>
+    <button class="btn primary" data-act="share-img" data-k="week" data-v="${state.history.length - 1}" style="margin-top:10px">${L("Share image to Story", "Kongsi gambar ke Story")}</button>
+    <button class="btn" data-act="share-week" data-h="${state.history.length - 1}">${L("Share to WhatsApp group", "Kongsi ke group WhatsApp")}</button>
     ${r.d === "lulus2" ? `<a class="btn" href="${CLASS_URL || THREADS_URL}" target="_blank" rel="noopener" style="margin-top:8px;text-decoration:none">${CLASS_URL ? L("Go for 5K with a coach", "Sambung ke 5K dengan coach") : L("Want to go for 5K? DM the coach", "Nak sambung ke 5K? DM coach")}</a>` : ""}
     <button class="btn ghost" data-act="sheet-close">OK</button>`);
 }
@@ -701,6 +706,69 @@ function showDecision(r, h) {
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function painCls(v) { return v <= 2 ? "c-g" : v <= 5 ? "c-y" : "c-r"; }
 function painPill(v, top) { return `<span class="pill ${v <= 2 ? "g" : v <= 5 ? "y" : "r"}">${top ? L("highest pain", "sakit paling tinggi") : L("pain", "sakit")} ${v}</span>`; }
+/* ---------- User journey helpers ---------- */
+function gc(path) { try { if (GC_CODE && window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title: path, event: true }); } catch (e) {} }
+function daysSince(d) { return d ? Math.floor((pd(today()) - pd(d)) / 86400000) : null; }
+function lastActive() { const ks = Object.keys(activity()).sort(); return ks[ks.length - 1] || null; }
+function hasLogs() { return state.history.length || (state.runs || []).length || (state.mtests || []).length || state.open.some(Boolean); }
+function safetyCards() {
+  let h = "";
+  if (!isStandalone() && isIOS) h += `<div class="alert" style="background:#FFF1F0;color:#A0150C;border:1px solid #FFD0CC">${L("Not installed yet. On iPhone, Safari can delete your log if you don't open it for 7 days. Add it to your Home Screen.", "Belum pasang. Kat iPhone, Safari boleh padam log kau kalau tak buka 7 hari. Pasang kat Home Screen dulu.")} <button class="link" data-tab="info" style="color:inherit">${L("How →", "Caranya →")}</button></div>`;
+  const lb = daysSince(state.lastBackup), snooze = state.backupSnooze && daysSince(state.backupSnooze) < 14;
+  if (hasLogs() && (lb == null ? daysSince(state.firstDay || today()) >= 30 : lb >= 30) && !snooze)
+    h += `<div class="card"><p class="eyebrow">${L("Monthly backup", "Backup bulanan")}</p><h3>${L("Save a copy of your log, in case you change phones.", "Simpan salinan log, kalau tukar phone nanti.")}</h3>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn primary" data-act="export">${L("Save backup", "Simpan backup")}</button><button class="btn" data-act="backup-later">${L("Later", "Nanti")}</button></div></div>`;
+  return h;
+}
+function comebackCard() {
+  const last = lastActive(), gap = daysSince(last);
+  if (!last || gap < 7 || state.wbSeen === last) return "";
+  return `<div class="card invite"><p class="eyebrow">${L("Welcome back", "Selamat kembali")}${state.name ? ", " + esc(state.name) : ""}</p>
+    <h3>${L(`${gap} days since your last run. No guilt. Let's ease back in.`, `Dah ${gap} hari tak lari. Takpe, jom sambung perlahan-lahan.`)}</h3>
+    <div class="row" style="gap:8px;margin-top:12px">${isRunner() ? `<button class="btn primary" data-act="run-new">${L("+ Add a run", "+ Tambah larian")}</button>` : `<button class="btn primary" data-act="wb-repeat">${L("Repeat this week", "Ulang minggu ni")}</button>`}<button class="btn" data-act="wb-ok" style="background:#2C2C2E;color:#fff">${L("Continue", "Sambung")}</button></div></div>`;
+}
+function sundayCard() {
+  if (isRunner() || new Date().getDay() !== 0) return "";
+  const st = weekStats(state.open);
+  if (st.n < 2 || st.missing) return "";
+  return `<div class="alert volt" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>${L("It's Sunday. Close the week and see your result.", "Hari Ahad. Tutup minggu dan tengok keputusan.")}</span><button class="pill" data-act="close" style="background:#000;color:var(--volt);padding:8px 12px">${L("Close", "Tutup")}</button></div>`;
+}
+function classCard() {
+  if (state.passes.t2 || state.classHide || !(CLASS_URL || COACH_WA)) return "";
+  const done = state.history.flatMap(h => (h.sessions || []).filter(x => x && x.done)).length + state.open.filter(x => x && x.done).length;
+  if (done < 1) return "";
+  const href = CLASS_URL || `https://wa.me/${COACH_WA}?text=${encodeURIComponent(L("Hi Coach Dollah, I'd like to know about the SihatLab online running class.", "Hi Coach Dollah, saya nak tahu pasal kelas lari online SihatLab."))}`;
+  return `<div class="card" style="box-shadow:0 0 0 2px var(--ink)"><p class="eyebrow">${L("Online class with Coach Dollah", "Kelas online dengan Coach Dollah")}</p>
+    <h3>${L("Doing well? Do it with a coach and a group.", "Dah mula? Buat sama-sama dengan coach dan group.")}</h3>
+    <p class="mute small">${L("8 live classes, Sundays 9pm, tests in week 1 and 12.", "8 kelas live, Ahad 9 malam, ujian minggu 1 dan 12.")}</p>
+    <a class="btn primary" href="${href}" target="_blank" rel="noopener" style="margin-top:10px;text-decoration:none" data-gc="class-click">${CLASS_URL ? L("See the class", "Tengok kelas") : L("Ask the coach on WhatsApp", "Tanya coach kat WhatsApp")}</a>
+    <button class="link" data-act="class-hide">${L("Not now", "Nanti dulu")}</button></div>`;
+}
+/* Share image (1080x1350) for milestones */
+function shareImage(title, sub, stat) {
+  const c = document.createElement("canvas"); c.width = 1080; c.height = 1350; const x = c.getContext("2d");
+  x.fillStyle = "#000"; x.fillRect(0, 0, 1080, 1350);
+  x.fillStyle = "#C8F31D"; x.beginPath(); x.arc(900, 220, 260, 0, Math.PI * 2); x.globalAlpha = .18; x.fill(); x.globalAlpha = 1;
+  const F = (w, sz) => `${w} ${sz}px Inter, -apple-system, Helvetica, Arial, sans-serif`;
+  x.font = F("italic 900", 64); x.fillStyle = "#fff"; x.fillText("sihatlab", 80, 140); x.fillStyle = "#C8F31D"; x.beginPath(); x.arc(80 + x.measureText("sihatlab").width + 14, 128, 11, 0, Math.PI * 2); x.fill();
+  x.fillStyle = "#C8F31D"; x.font = F("700", 40); x.fillText(L("Mula Lari", "Mula Lari"), 80, 640);
+  const wrap = (t, y, sz, col, w) => { x.font = F("900", sz); x.fillStyle = col; let line = "", yy = y; t.split(" ").forEach(wd => { const tt = line ? line + " " + wd : wd; if (x.measureText(tt).width > w && line) { x.fillText(line, 80, yy); line = wd; yy += sz * 1.05; } else line = tt; }); x.fillText(line, 80, yy); return yy; };
+  let y = wrap(title, 760, 120, "#fff", 920);
+  x.font = F("600", 44); x.fillStyle = "#D1D1D6"; x.fillText(sub, 80, y + 90);
+  if (stat) { x.font = F("800", 40); const w = x.measureText(stat).width + 64; x.fillStyle = "#C8F31D"; x.beginPath(); x.roundRect(80, y + 140, w, 84, 42); x.fill(); x.fillStyle = "#000"; x.fillText(stat, 112, y + 196); }
+  x.font = F("600", 34); x.fillStyle = "#86868B"; x.fillText("dolaheth.github.io/mula-lari", 80, 1260);
+  c.toBlob(async b => {
+    const f = new File([b], "sihatlab-mula-lari.png", { type: "image/png" });
+    try { if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], text: "SihatLab Mula Lari" }); gc("share-image"); return; } } catch (e) { return; }
+    const u = URL.createObjectURL(b); sheet(`<h1 style="font-size:22px">${L("Your image", "Gambar kau")}</h1><p class="mute small" style="margin:6px 0 10px">${L("Press and hold the image to save, then post it to your Story.", "Tekan lama gambar ni untuk simpan, lepas tu post kat Story.")}</p><img src="${u}" style="width:100%;border-radius:16px"><button class="btn ghost" data-act="sheet-close" style="margin-top:10px">OK</button>`);
+  }, "image/png");
+}
+function shareMilestone(kind, ref) {
+  const sk = streak(), sks = sk ? L(`${sk}-week streak`, `Streak ${sk} minggu`) : "";
+  if (kind === "sess") return shareImage(L(`Session ${ref + 1} done ✓`, `Sesi ${ref + 1} siap ✓`), `${label(state.cur.t, state.cur.w)} · ${tx(TAHAP[state.cur.t])}`, sks);
+  if (kind === "week") { const h = state.history[ref]; const big = h.d === "lulus1" || h.d === "lulus2"; return shareImage(big ? (h.d === "lulus1" ? L("Stage 1 passed!", "Lulus Tahap 1!") : L("Stage 2 passed! 30 min non-stop", "Lulus Tahap 2! 30 minit non-stop")) : L(`Week ${h.w} done ✓`, `Minggu ${h.w} siap ✓`), label(h.t, h.w), sks); }
+  if (kind === "test") { const t = state.mtests[ref], is5 = t.kind === "5k"; return shareImage(is5 ? `5K ${t.time}` : `MAF ${mmss(parseTime(t.time) * 12)}/km`, is5 ? `VDOT ${vdotOf(5000, parseTime(t.time)).toFixed(1)}` : L("Aerobic engine test", "Ujian enjin aerobik"), sks); }
+}
 function topBar() {
   const ms = state.lang === "ms";
   return `<div class="top"><img src="logo-dark.png" alt="SihatLab">
@@ -722,7 +790,8 @@ function runnerHome() {
   let h = topBar();
   if (!storageOk) h += `<div class="alert red">${L("This phone won't let the app save data (maybe private mode). Your log won't be kept.", "Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.")}</div>`;
   const sk = streak(), wk = weekKm();
-  h += `<div class="hero"><p class="eyebrow">${L("Runner mode", "Mod pelari")}</p><h1>${L("Test & log", "Ujian & log")}</h1>
+  h += safetyCards() + comebackCard();
+  h += `<div class="hero"><p class="eyebrow">${state.name ? L("Let's go, ", "Jom, ") + esc(state.name) + " · " : ""}${L("Runner mode", "Mod pelari")}</p><h1>${L("Test & log", "Ujian & log")}</h1>
     <p style="color:#A1A1A6;margin:8px 0 0">${L("No plan. Test regularly and see if you're improving.", "Tiada pelan. Uji selalu, tengok improve ke tak.")}</p>
     <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
@@ -746,10 +815,11 @@ function homeView() {
   let h = topBar();
   if (!storageOk) h += `<div class="alert red">${L("This phone won't let the app save data (maybe private mode). Your log won't be kept.", "Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.")}</div>`;
   const sk = streak();
-  h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
+  h += safetyCards() + comebackCard() + sundayCard();
+  h += `<div class="hero"><p class="eyebrow">${state.name ? L("Let's go, ", "Jom, ") + esc(state.name) + " · " : ""}${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
     <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
-  h += installCard("home") + inviteCard() + testCard();
+  h += installCard("home") + inviteCard() + testCard() + classCard();
   if (st.maxP >= 6) h += `<div class="alert red">${L("Pain of 6/10 or more. Stop running and see a physio. Chest pain, dizziness or breathlessness? Call 999.", "Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.")}</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
   if (needPain.length) h += `<div class="alert volt">${L(`Rate your next-morning pain for session ${needPain.map(i => i + 1).join(", ")} below.`, `Isi sakit pagi esoknya untuk sesi ${needPain.map(i => i + 1).join(", ")} di bawah.`)}</div>`;
@@ -862,7 +932,7 @@ function mtBlock(kind) {
   const mx = Math.max(...xs.map(sec)), mn = Math.min(...xs.map(sec));
   h += `<div class="kmbars" style="grid-template-columns:repeat(${Math.min(xs.length, 12)},1fr);height:80px">${xs.slice(-12).map((t, i, arr) => `<div><i class="${i === arr.length - 1 ? "now" : ""}" style="height:${mx === mn ? 60 : Math.round(30 + (mx - sec(t)) / (mx - mn) * 60)}%"></i></div>`).join("")}</div>
     <p class="small mute" style="margin:4px 0 6px">${L("Taller bar = faster", "Bar tinggi = lagi laju")}</p>`;
-  h += xs.slice().reverse().slice(0, 6).map(t => { const i = state.mtests.indexOf(t); return `<div class="runrow"><div><span class="km" style="font-size:15px">${show(t)}</span><div class="meta">${nice(t.date)}</div></div><button class="link" data-act="mt-del" data-i="${i}">${mtDel === i ? L("Tap again", "Tekan lagi") : L("Delete", "Padam")}</button></div>`; }).join("");
+  h += xs.slice().reverse().slice(0, 6).map(t => { const i = state.mtests.indexOf(t); return `<div class="runrow"><div><span class="km" style="font-size:15px">${show(t)}</span><div class="meta">${nice(t.date)}</div></div><button class="link" data-act="share-img" data-k="test" data-v="${i}">${L("Share", "Kongsi")}</button> <button class="link" data-act="mt-del" data-i="${i}">${mtDel === i ? L("Tap again", "Tekan lagi") : L("Delete", "Padam")}</button></div>`; }).join("");
   return h + `</div>`;
 }
 function mtSection() {
@@ -1201,35 +1271,43 @@ let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "", mode: null };
 const isRunner = () => state.mode === "runner" || !!state.passes.t2;
 const onbReady = () => onb.safe && onb.mode && (onb.mode === "runner" || onb.walk30 != null);
 function onboardView() {
-  return topBar() + `
+  const st = onb.step || 0, dots = [0, 1, 2].map(k => `<i style="flex:1;height:5px;border-radius:3px;background:${k <= st ? "var(--ink)" : "var(--line)"}"></i>`).join("");
+  const back = st ? `<button class="link" data-act="onb-step" data-v="${st - 1}">← ${L("Back", "Balik")}</button>` : "";
+  let h = topBar() + `<div style="display:flex;gap:6px;margin:0 0 16px">${dots}</div>`;
+  if (st === 0) return h + `
   <p class="eyebrow">${L("Welcome", "Selamat datang")}</p><h1>${L("From zero to running 30 minutes.", "Dari kosong ke 30 minit lari.")}</h1>
   <p class="mute" style="margin-top:10px">${L("Three stages: brisk walking, run-walk, running 30 minutes. You move up when you pass, not by the calendar.", "Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.")}</p>
   ${installCard("onb")}
+  <h2>${L("What should we call you?", "Nak panggil apa?")}</h2>
+  <input class="field" id="onbName" placeholder="${L("Your name", "Nama kau")}" value="${String(state.name || "").replace(/"/g, "")}" data-onbname="1">
+  <button class="btn primary" data-act="onb-step" data-v="1" style="margin-top:18px">${L("Next", "Seterusnya")}</button>`;
+  if (st === 1) return h + `
   <h2>${L("Which one are you?", "Kau yang mana?")}</h2>
   <div class="row" style="gap:8px">
     <button class="btn ${onb.mode === "beginner" ? "primary" : ""}" data-act="onb-mode" data-m="beginner">${L("Beginner", "Beginner")}</button>
     <button class="btn ${onb.mode === "runner" ? "primary" : ""}" data-act="onb-mode" data-m="runner">${L("I already run", "Dah biasa lari")}</button>
   </div>
   ${onb.mode ? `<p class="mute small" style="margin-top:8px">${onb.mode === "runner" ? L("You also get the run log and VDOT. You can switch any time in Settings.", "Kau dapat log larian dan VDOT sekali. Boleh tukar bila-bila dalam Tetapan.") : L("Simple mode: the step-by-step plan from walking to running 30 minutes.", "Mod ringkas: pelan langkah demi langkah dari jalan ke lari 30 minit.")}</p>` : ""}
-  <h2>${L("1. Health check", "1. Saringan kesihatan")}</h2>
+  <button class="btn primary" data-act="onb-step" data-v="2" style="margin-top:18px" ${onb.mode ? "" : "disabled"}>${onb.mode ? L("Next", "Seterusnya") : L("Pick one first", "Pilih satu dulu")}</button>${back}`;
+  return h + `
+  <h2>${L("Health check", "Saringan kesihatan")}</h2>
   <div class="card">
     <p class="small">${L("See a doctor first if you have: chest pain, unusual shortness of breath, dizziness or fainting, swollen ankles, a racing or irregular heartbeat, or leg pain when walking.", "Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.")}</p>
     <p class="small">${L("See a doctor or physio first if you have: back or knee pain that keeps coming back, heart disease, diabetes or kidney disease (even if it's under control).", "Doktor atau physio dulu kalau: sakit belakang atau lutut yang selalu datang balik, penyakit jantung, kencing manis atau buah pinggang (walaupun terkawal).")}</p>
     <label class="check" style="border:0;padding-bottom:0"><input type="checkbox" data-act="onb" data-k="safe" ${onb.safe ? "checked" : ""}><span>${L("I don't have any of these, or my doctor has said OK.", "Aku tak ada semua ni, atau doktor dah bagi ok.")}</span></label>
   </div>
-  ${onb.mode === "runner" ? "" : `<h2>${L("2. Can you brisk walk for 30 minutes comfortably right now?", "2. Sekarang boleh jalan laju 30 minit dengan selesa?")}</h2>
+  ${onb.mode === "runner" ? "" : `<h2>${L("Can you brisk walk for 30 minutes comfortably right now?", "Sekarang boleh jalan laju 30 minit dengan selesa?")}</h2>
   <div class="row" style="gap:8px">
     <button class="btn ${onb.walk30 === true ? "primary" : ""}" data-act="onb-walk" data-v="1">${L("Yes", "Boleh")}</button>
     <button class="btn ${onb.walk30 === false ? "primary" : ""}" data-act="onb-walk" data-v="0">${L("Not yet", "Belum")}</button>
   </div>
   ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? L("You start at Stage 2: run-walk.", "Kau mula di Tahap 2: lari-jalan.") : L("You start at Stage 1: brisk walking, 2 to 4 weeks.", "Kau mula di Tahap 1: jalan laju, 2–4 minggu.")}</p>`}`}
-  <h2>3. BMI</h2>
+  <h2>BMI</h2>
   <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">${L("You can skip this. It stays on your phone.", "Tak nak isi pun tak apa. Data ni simpan dalam phone je.")}</p></div>
   <p class="small" id="bmi-onb-warn" style="color:var(--warn)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>${L("BMI 30+: we suggest starting at Stage 1 even if you can already walk 30 minutes. It's safer for your knees.", "BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.")}</p>
   <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onbReady() ? "" : "disabled"}>${onbReady() ? L("Start", "Mula") : L("Answer the questions above first", "Jawab soalan atas dulu")}</button>
-  <p class="mute small" style="margin-top:14px">${L("Your data stays on this phone only.", "Data simpan dalam phone ni je.")}</p>`;
+  <p class="mute small" style="margin-top:14px">${L("Your data stays on this phone only.", "Data simpan dalam phone ni je.")}</p>${back}`;
 }
-
 let resetArmed = false, delArmed = -1;
 function render() {
   const app = document.getElementById("app");
@@ -1248,6 +1326,7 @@ function render() {
 
 /* ---------- Taps ---------- */
 document.addEventListener("click", e => {
+  const g = e.target.closest("[data-gc]"); if (g) gc(g.dataset.gc);
   const tb = e.target.closest("[data-tab]");
   if (tb) { tab = tb.dataset.tab; resetArmed = false; render(); document.getElementById("scroller").scrollTop = 0; return; }
   const el = e.target.closest("[data-act]");
@@ -1265,7 +1344,7 @@ document.addEventListener("click", e => {
       mtDraft.time = g("mTime").replace(/[^0-9:]/g, ""); mtDraft.hr = g("mHr").replace(/[^0-9]/g, ""); mtDraft.date = g("mDate") || today();
       const m = parseTime(mtDraft.time);
       if (!m || m < 12 || m > 90) { document.getElementById("mWarn").textContent = L("Enter the time for 5 km, e.g. 28:30.", "Isi masa untuk 5 km, contoh 28:30."); break; }
-      state.mtests = state.mtests || []; state.mtests.push({ ...mtDraft }); save(); closeSheet(); mtDraft = null; tab = "log"; render(); break;
+      state.mtests = state.mtests || []; state.mtests.push({ ...mtDraft }); gc("test-" + mtDraft.kind); save(); closeSheet(); mtDraft = null; tab = "log"; render(); break;
     }
     case "mt-del":
       if (mtDel === i) { state.mtests.splice(i, 1); mtDel = -1; save(); render(); }
@@ -1295,17 +1374,32 @@ document.addEventListener("click", e => {
     case "hr": { const h = hrState(), k = el.dataset.k; h[k] = (k === "adj" || k === "wx") ? v : el.dataset.v; save(); const box = document.getElementById("hrcalc"); if (box) box.innerHTML = hrCalc(); break; }
     case "sheet-bg": if (e.target === el) closeSheet(); break;
     case "sheet-close": closeSheet(); render(); break;
-    case "start": startTimer(i); break;
+    case "start": {
+      const done = state.history.flatMap(h => (h.sessions || []).filter(x => x && x.done)).length + state.open.filter(x => x && x.done).length;
+      if (state.noChecklist || done >= 3) { startTimer(i); break; }
+      sheet(`<p class="eyebrow">${L("Before you start", "Sebelum mula")}</p><h1 style="font-size:24px">${L("Quick check", "Semak sekejap")}</h1>
+        <ul class="plain" style="margin-top:10px"><li>${L("Comfortable running shoes on, water nearby.", "Pakai kasut lari yang selesa, air dekat.")}</li>
+        <li>${L("Keep the screen on and the phone with you.", "Biar skrin hidup, phone bawa sekali.")}</li>
+        <li>${L("3 beeps = switch. Green screen = run, black = walk.", "Bunyi 3 kali = tukar. Skrin hijau = lari, hitam = jalan.")}</li>
+        <li>${L("Slow is fine. You should still be able to talk.", "Perlahan pun takpe. Masih boleh bercakap.")}</li></ul>
+        <button class="btn" data-act="test-sound">${L("Test sound", "Test bunyi")}</button>
+        <button class="btn primary" data-act="start-go" data-i="${i}">${L("Start", "Mula")}</button>
+        <label class="check" style="border:0"><input type="checkbox" id="noCl"><span class="small">${L("Don't show this again", "Jangan tunjuk lagi")}</span></label>`);
+      break;
+    }
+    case "start-go": { const nc = document.getElementById("noCl"); if (nc && nc.checked) { state.noChecklist = true; save(); } closeSheet(); startTimer(i); break; }
     case "manual": openLog(i, false); break;
     case "edit": openLog(i, false); break;
     case "rpe": pendingRpe = v; el.parentElement.querySelectorAll(".chip").forEach(c => c.classList.toggle("sel", +c.dataset.v === v)); break;
     case "save-log": {
       const ex = state.open[i], first = !(ex && ex.done);
+      if (first) gc("session-done");
       state.open[i] = { done: true, date: ex && ex.date ? ex.date : today(), rpe: pendingRpe, pain: ex ? ex.pain ?? null : null };
       save(); closeSheet(); render();
       if (first) sheet(`<p class="eyebrow">${L("Saved", "Disimpan")}</p><h1 style="font-size:26px">${L(`Session ${i + 1} done. Well done!`, `Sesi ${i + 1} siap. Syabas!`)}</h1>
         <p class="mute small" style="margin-top:6px">${L("Tell the group. When friends see it, you stay motivated too.", "Bagitahu group. Kawan nampak, kau pun lagi semangat.")}</p>
         <button class="btn primary" data-act="share-sess" data-i="${i}">${L("Check in to WhatsApp group", "Check-in ke group WhatsApp")}</button>
+        <button class="btn" data-act="share-img" data-k="sess" data-v="${i}">${L("Share image to Story", "Kongsi gambar ke Story")}</button>
         <button class="btn ghost" data-act="sheet-close">${L("Later", "Nanti")}</button>`);
       break;
     }
@@ -1379,7 +1473,14 @@ document.addEventListener("click", e => {
       if (state.open.some(Boolean) && !confirmJump) { confirmJump = true; el.textContent = L("This week's sessions will be cleared. Tap again.", "Sesi minggu ni akan dikosongkan. Tekan lagi."); break; }
       confirmJump = false; state.cur = { t, w }; state.open = [null, null, null]; save(); tab = "home"; render(); break;
     }
+    case "share-img": shareMilestone(el.dataset.k, +el.dataset.v); break;
+    case "onb-step": if (v === 1) state.name = (document.getElementById("onbName") || {}).value?.slice(0, 40) || state.name || ""; onb.step = v; save(); render(); document.getElementById("scroller").scrollTop = 0; break;
+    case "backup-later": state.backupSnooze = today(); save(); render(); break;
+    case "wb-ok": state.wbSeen = lastActive(); save(); render(); break;
+    case "wb-repeat": state.wbSeen = lastActive(); state.open = [null, null, null]; save(); render(); break;
+    case "class-hide": state.classHide = true; save(); render(); break;
     case "export": {
+      state.lastBackup = today(); save();
       const blob = new Blob([JSON.stringify(state, null, 1)], { type: "application/json" });
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `sihatlab-mula-lari-${today()}.json`; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000); break;
@@ -1392,6 +1493,7 @@ document.addEventListener("click", e => {
     case "onb-mode": onb.mode = el.dataset.m; render(); break;
     case "onb-go":
       if (!onbReady()) break;
+      gc("onboard-" + onb.mode); state.firstDay = today();
       state.started = true; state.bmi30 = onb.bmi30; state.h = onb.h; state.w = onb.w; state.mode = onb.mode;
       state.cur = onb.mode === "runner" ? { t: 3, w: 1 } : { t: onb.walk30 && !onb.bmi30 ? 2 : 1, w: 1 };
       save(); tab = "home"; render(); break;
@@ -1431,6 +1533,7 @@ document.addEventListener("change", e => {
   }
 });
 
+if (GC_CODE) { const sc = document.createElement("script"); sc.async = true; sc.src = "https://gc.zgo.at/count.js"; sc.dataset.goatcounter = `https://${GC_CODE}.goatcounter.com/count`; document.head.appendChild(sc); }
 render();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
 if ("speechSynthesis" in window) speechSynthesis.getVoices();
