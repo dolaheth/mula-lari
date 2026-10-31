@@ -677,7 +677,26 @@ function journey() {
   return `<div class="journey">${cells.join("")}</div><div class="jl"><span>${L("Stage 1 · walk", "Tahap 1 · jalan")}</span><span>${L("Stage 2 · run-walk", "Tahap 2 · lari-jalan")}</span><span>30 min</span></div>`;
 }
 
+function runnerHome() {
+  let h = topBar();
+  if (!storageOk) h += `<div class="alert red">${L("This phone won't let the app save data (maybe private mode). Your log won't be kept.", "Phone ni tak bagi simpan data (mungkin mod private). Log takkan disimpan.")}</div>`;
+  const sk = streak(), wk = weekKm();
+  h += `<div class="hero"><p class="eyebrow">${L("Runner mode", "Mod pelari")}</p><h1>${L("Test & log", "Ujian & log")}</h1>
+    <p style="color:#A1A1A6;margin:8px 0 0">${L("No plan. Test regularly and see if you're improving.", "Tiada pelan. Uji selalu, tengok improve ke tak.")}</p>
+    <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
+    <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
+  h += installCard("home") + mtCard();
+  h += `<h2>${L("Your tests", "Ujian kau")}</h2><div class="card">${mtPicker()}${mtKinds().map(k => {
+    const xs = mtList(k), last = xs[xs.length - 1], nx = mtNext(k), is5 = k === "5k";
+    const val = !last ? L("No result yet", "Belum ada result") : is5 ? `${last.time} · VDOT ${vdotOf(5000, parseTime(last.time)).toFixed(1)}` : `${mmss(parseTime(last.time) * 12)} /km`;
+    return `<div class="runrow"><div><b>${is5 ? L("5K test", "Ujian 5K") : L("MAF test", "Ujian MAF")}</b><div class="meta">${L("Latest", "Terkini")}: ${val}</div><div class="meta">${nx ? L("Next", "Seterusnya") + ": " + nice(nx) : L("Do your first one", "Buat yang pertama")} · ${is5 ? L("every 8 weeks", "setiap 8 minggu") : L("every 4 weeks", "setiap 4 minggu")}</div></div>
+      <button class="pill v" data-act="mt-new" data-k="${k}" style="align-self:center">+ ${L("Result", "Result")}</button></div>`;
+  }).join("")}<button class="link" data-tab="log">${L("See all results and progress →", "Tengok semua result dan progress →")}</button></div>`;
+  h += `<div class="card"><div class="row between"><div><p class="eyebrow" style="margin:0">${L("Run log", "Log larian")}</p><b style="font-size:22px">${wk[7].km.toFixed(1)} km</b> <span class="small mute">${L("this week", "minggu ni")}</span></div><button class="pill v" data-act="run-new" style="padding:10px 14px">${L("+ Add run", "+ Larian")}</button></div></div>`;
+  return h + inviteCard() + socialCard();
+}
 function homeView() {
+  if (isRunner()) return runnerHome();
   const { t, w } = state.cur;
   const st = weekStats(state.open);
   const lastDone = state.open.filter(Boolean).map(s => s.date).sort().pop();
@@ -689,8 +708,6 @@ function homeView() {
   h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
     <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
-  if (isRunner()) h += mtCard();
-  if (isRunner()) { const wk = weekKm(); h += `<div class="card"><div class="row between"><div><p class="eyebrow" style="margin:0">${L("Run log", "Log larian")}</p><b style="font-size:22px">${wk[7].km.toFixed(1)} km</b> <span class="small mute">${L("this week", "minggu ni")}</span></div><button class="pill v" data-act="run-new" style="padding:10px 14px">${L("+ Add run", "+ Larian")}</button></div></div>`; }
   h += installCard("home") + inviteCard() + testCard();
   if (st.maxP >= 6) h += `<div class="alert red">${L("Pain of 6/10 or more. Stop running and see a physio. Chest pain, dizziness or breathlessness? Call 999.", "Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.")}</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
@@ -762,6 +779,15 @@ function vdotOf(dist, min) {
 }
 const mmss = sec => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 function mtList(kind) { return (state.mtests || []).filter(t => t.kind === kind && parseTime(t.time)).sort((a, b) => a.date.localeCompare(b.date)); }
+const mtKinds = () => state.mtPick === "5k" ? ["5k"] : state.mtPick === "maf" ? ["maf"] : ["5k", "maf"];
+function mtPicker() {
+  const p = state.mtPick || "both", b = (k, n) => `<button class="${p === k ? "sel" : ""}" data-act="mt-pick" data-k="${k}">${n}</button>`;
+  return `<div class="seg2" style="grid-template-columns:repeat(3,1fr);margin:6px 0 4px">${b("both", L("Both", "Dua-dua"))}${b("5k", L("5K only", "5K je"))}${b("maf", L("MAF only", "MAF je"))}</div>`;
+}
+function mtNext(kind) {
+  const xs = mtList(kind); if (!xs.length) return null;
+  const n = pd(xs[xs.length - 1].date); n.setDate(n.getDate() + MT_EVERY[kind]); return ds(n);
+}
 const MT_EVERY = { maf: 28, "5k": 56 }; // MAF every 4 weeks, 5K every 8 weeks
 function mtDueKind(kind) {
   const xs = (state.mtests || []).filter(t => t.kind === kind).map(t => t.date).sort();
@@ -801,15 +827,15 @@ function mtBlock(kind) {
 function mtSection() {
   return `<h2>${L("Monthly test", "Ujian bulanan")}</h2><div class="card">
     <p class="small mute" style="margin:0 0 6px">${L("No plan needed. MAF test every 4 weeks, 5K test every 8 weeks. See if you're improving.", "Tak perlu pelan. Ujian MAF setiap 4 minggu, ujian 5K setiap 8 minggu. Tengok improve ke tak.")}</p>
-    ${mtBlock("5k")}${mtBlock("maf")}</div>`;
+    ${mtPicker()}${mtKinds().map(mtBlock).join("")}</div>`;
 }
 function mtCard() {
-  const d5 = mtDueKind("5k"), dm = mtDueKind("maf");
+  const ks = mtKinds(), d5 = ks.includes("5k") ? mtDueKind("5k") : null, dm = ks.includes("maf") ? mtDueKind("maf") : null;
   if (!d5 && !dm) return "";
-  const first = d5 === "first" && dm === "first";
+  const first = ks.every(k => mtDueKind(k) === "first");
   const want = [d5 ? "5k" : null, dm ? "maf" : null].filter(Boolean);
   const btn = (k, i) => `<button class="btn ${i === 0 ? "primary" : ""}" data-act="mt-new" data-k="${k}" ${i === 0 ? "" : 'style="background:#2C2C2E;color:#fff"'}>${k === "5k" ? L("5K test", "Ujian 5K") : L("MAF test", "Ujian MAF")}</button>`;
-  const title = first ? L("Set your baseline: a 5K test and a MAF test.", "Set titik mula: ujian 5K dan ujian MAF.")
+  const title = first ? (ks.length === 2 ? L("Set your baseline: a 5K test and a MAF test.", "Set titik mula: ujian 5K dan ujian MAF.") : ks[0] === "5k" ? L("Set your baseline with a 5K test.", "Set titik mula dengan ujian 5K.") : L("Set your baseline with a MAF test.", "Set titik mula dengan ujian MAF."))
     : want.length === 2 ? L("Time for both: your 5K test (every 8 weeks) and MAF test (every 4 weeks).", "Masa untuk dua-dua: ujian 5K (setiap 8 minggu) dan ujian MAF (setiap 4 minggu).")
     : want[0] === "maf" ? L("4 weeks since your last MAF test. Test again and see if you've improved.", "Dah 4 minggu sejak ujian MAF lepas. Ulang dan tengok improve ke tak.")
     : L("8 weeks since your last 5K test. Time to see your new VDOT.", "Dah 8 minggu sejak ujian 5K lepas. Masa tengok VDOT baru.");
@@ -1190,6 +1216,7 @@ document.addEventListener("click", e => {
     case "hr-mode": state.hrMode = el.dataset.m === "kv" ? "kv" : "pct"; save(); render(); break;
     case "vd-dist": state.vdDist = v; save(); render(); break;
     case "maf-adj": state.mafAdj = v; save(); render(); break;
+    case "mt-pick": state.mtPick = el.dataset.k; save(); render(); break;
     case "mt-new": mtDraft = { kind: el.dataset.k, date: today(), time: "", hr: "" }; openMT(); break;
     case "mt-save": {
       const g = id => (document.getElementById(id) || {}).value || "";
