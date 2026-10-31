@@ -687,6 +687,7 @@ function homeView() {
   h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
     <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
+  if (isRunner()) { const wk = weekKm(); h += `<div class="card"><div class="row between"><div><p class="eyebrow" style="margin:0">${L("Run log", "Log larian")}</p><b style="font-size:22px">${wk[7].km.toFixed(1)} km</b> <span class="small mute">${L("this week", "minggu ni")}</span></div><button class="pill v" data-act="run-new" style="padding:10px 14px">${L("+ Add run", "+ Larian")}</button></div></div>`; }
   h += installCard("home") + inviteCard() + testCard();
   if (st.maxP >= 6) h += `<div class="alert red">${L("Pain of 6/10 or more. Stop running and see a physio. Chest pain, dizziness or breathlessness? Call 999.", "Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.")}</div>`;
   const needPain = state.open.map((s, i) => (s && s.done && s.pain == null && s.date < today()) ? i : -1).filter(i => i >= 0);
@@ -798,7 +799,7 @@ function logView() {
   const sk = streak();
   h += `<h2>${L("Consistency", "Konsisten")}</h2><div class="card"><div class="row between"><b>${sk ? L(`${sk}-week streak`, `Streak ${sk} minggu`) : L("No streak yet", "Belum ada streak")}</b><span class="mute small">${L("2+ sessions a week", "2+ sesi seminggu")}</span></div>
     ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> ${L("session", "sesi")}</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ${L("test", "ujian")}</span><span>${L("last 8 weeks", "8 minggu lepas")}</span></div></div>`;
-  h += runsSection();
+  if (isRunner()) h += runsSection();
   h += `<h2>${L("20-minute test", "Ujian 20 minit")}</h2>`;
   if (state.tests.length) {
     const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
@@ -847,6 +848,7 @@ function infoView() {
   <h2>${L("Settings", "Tetapan")}</h2>
   <div class="card">
     <div class="switch"><span>${L("Language", "Bahasa")}</span><div class="lang"><button data-act="lang" data-l="en" aria-pressed="${state.lang !== "ms"}">English</button><button data-act="lang" data-l="ms" aria-pressed="${state.lang === "ms"}">BM</button></div></div>
+    <div class="switch"><span>${L("Mode", "Mod")}<br><span class="mute small">${L("Runner adds Zones, VDOT and the run log", "Biasa lari tambah Zon HR, VDOT dan log larian")}</span></span><div class="lang"><button data-act="set-mode" data-m="beginner" aria-pressed="${state.mode !== "runner"}">${L("Beginner", "Beginner")}</button><button data-act="set-mode" data-m="runner" aria-pressed="${state.mode === "runner"}">${L("Runner", "Biasa lari")}</button></div></div>
     <label class="switch"><span>${L("Beep sounds", "Bunyi beep")}</span><input type="checkbox" data-act="set" data-k="sound" ${state.sound ? "checked" : ""}></label>
     <label class="switch"><span>${L('Voice ("Run", "Walk")', 'Suara ("Lari", "Jalan")')}</span><input type="checkbox" data-act="set" data-k="voice" ${state.voice ? "checked" : ""}></label>
     <label class="switch"><span>${L("2-minute warm-up moves", "Gerakan pemanasan 2 minit")}<br><span class="mute small">${L("Leg swings, ankles, calf raises. Built into the timer.", "Ayun kaki, buku lali, jengket. Dalam timer.")}</span></span><input type="checkbox" data-act="set" data-k="moves" ${state.moves ? "checked" : ""}></label>
@@ -1049,28 +1051,37 @@ function installCard(where) {
     ${where === "home" ? `<button class="link" data-act="install-hide">${L("Done / hide this", "Dah pasang / sorok")}</button>` : ""}</div>`;
 }
 
-let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" };
+let onb = { safe: false, walk30: null, bmi30: false, h: "", w: "", mode: null };
+/* Beginner mode keeps it simple (Today, Log, Guide). Runner mode adds Zones, VDOT and the free-run log. Passing Stage 2 unlocks runner tools. */
+const isRunner = () => state.mode === "runner" || !!state.passes.t2;
+const onbReady = () => onb.safe && onb.mode && (onb.mode === "runner" || onb.walk30 != null);
 function onboardView() {
   return topBar() + `
   <p class="eyebrow">${L("Welcome", "Selamat datang")}</p><h1>${L("From zero to running 30 minutes.", "Dari kosong ke 30 minit lari.")}</h1>
   <p class="mute" style="margin-top:10px">${L("Three stages: brisk walking, run-walk, running 30 minutes. You move up when you pass, not by the calendar.", "Tiga tahap: jalan laju, lari-jalan, lari 30 minit. Naik tahap bila lulus, bukan ikut tarikh.")}</p>
   ${installCard("onb")}
+  <h2>${L("Which one are you?", "Kau yang mana?")}</h2>
+  <div class="row" style="gap:8px">
+    <button class="btn ${onb.mode === "beginner" ? "primary" : ""}" data-act="onb-mode" data-m="beginner">${L("Beginner", "Beginner")}</button>
+    <button class="btn ${onb.mode === "runner" ? "primary" : ""}" data-act="onb-mode" data-m="runner">${L("I already run", "Dah biasa lari")}</button>
+  </div>
+  ${onb.mode ? `<p class="mute small" style="margin-top:8px">${onb.mode === "runner" ? L("You get the run log, HR zones, MAF and VDOT. You can switch any time in Settings.", "Kau dapat log larian, zon HR, MAF dan VDOT. Boleh tukar bila-bila dalam Tetapan.") : L("Simple mode: the step-by-step plan from walking to running 30 minutes.", "Mod ringkas: pelan langkah demi langkah dari jalan ke lari 30 minit.")}</p>` : ""}
   <h2>${L("1. Health check", "1. Saringan kesihatan")}</h2>
   <div class="card">
     <p class="small">${L("See a doctor first if you have: chest pain, unusual shortness of breath, dizziness or fainting, swollen ankles, a racing or irregular heartbeat, or leg pain when walking.", "Jumpa doktor dulu kalau ada: sakit dada, sesak nafas luar biasa, pening atau pitam, buku lali bengkak, jantung berdebar, kaki sakit bila jalan.")}</p>
     <p class="small">${L("See a doctor or physio first if you have: back or knee pain that keeps coming back, heart disease, diabetes or kidney disease (even if it's under control).", "Doktor atau physio dulu kalau: sakit belakang atau lutut yang selalu datang balik, penyakit jantung, kencing manis atau buah pinggang (walaupun terkawal).")}</p>
     <label class="check" style="border:0;padding-bottom:0"><input type="checkbox" data-act="onb" data-k="safe" ${onb.safe ? "checked" : ""}><span>${L("I don't have any of these, or my doctor has said OK.", "Aku tak ada semua ni, atau doktor dah bagi ok.")}</span></label>
   </div>
-  <h2>${L("2. Can you brisk walk for 30 minutes comfortably right now?", "2. Sekarang boleh jalan laju 30 minit dengan selesa?")}</h2>
+  ${onb.mode === "runner" ? "" : `<h2>${L("2. Can you brisk walk for 30 minutes comfortably right now?", "2. Sekarang boleh jalan laju 30 minit dengan selesa?")}</h2>
   <div class="row" style="gap:8px">
     <button class="btn ${onb.walk30 === true ? "primary" : ""}" data-act="onb-walk" data-v="1">${L("Yes", "Boleh")}</button>
     <button class="btn ${onb.walk30 === false ? "primary" : ""}" data-act="onb-walk" data-v="0">${L("Not yet", "Belum")}</button>
   </div>
-  ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? L("You start at Stage 2: run-walk.", "Kau mula di Tahap 2: lari-jalan.") : L("You start at Stage 1: brisk walking, 2 to 4 weeks.", "Kau mula di Tahap 1: jalan laju, 2–4 minggu.")}</p>`}
+  ${onb.walk30 == null ? "" : `<p class="mute small" style="margin-top:8px">${onb.walk30 ? L("You start at Stage 2: run-walk.", "Kau mula di Tahap 2: lari-jalan.") : L("You start at Stage 1: brisk walking, 2 to 4 weeks.", "Kau mula di Tahap 1: jalan laju, 2–4 minggu.")}</p>`}`}
   <h2>3. BMI</h2>
   <div class="card">${bmiBox("onb", onb.h, onb.w)}<p class="mute small" style="margin:6px 0 0">${L("You can skip this. It stays on your phone.", "Tak nak isi pun tak apa. Data ni simpan dalam phone je.")}</p></div>
   <p class="small" id="bmi-onb-warn" style="color:var(--warn)" ${onb.bmi30 && onb.walk30 ? "" : "hidden"}>${L("BMI 30+: we suggest starting at Stage 1 even if you can already walk 30 minutes. It's safer for your knees.", "BMI 30+: kami cadang mula Tahap 1 dulu walaupun dah boleh jalan 30 minit. Lagi selamat untuk lutut.")}</p>
-  <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onb.safe && onb.walk30 != null ? "" : "disabled"}>${onb.safe && onb.walk30 != null ? L("Start", "Mula") : L("Answer the questions above first", "Jawab soalan atas dulu")}</button>
+  <button class="btn primary" data-act="onb-go" style="margin-top:20px" ${onbReady() ? "" : "disabled"}>${onbReady() ? L("Start", "Mula") : L("Answer the questions above first", "Jawab soalan atas dulu")}</button>
   <p class="mute small" style="margin-top:14px">${L("Your data stays on this phone only.", "Data simpan dalam phone ni je.")}</p>`;
 }
 
@@ -1082,7 +1093,11 @@ function render() {
   if (!state.started) { tabs.hidden = true; app.innerHTML = onboardView(); return; }
   tabs.hidden = false;
   const names = { home: L("Today", "Hari ni"), log: "Log", hr: L("Zones", "Zon HR"), pace: "VDOT", info: L("Guide", "Panduan") };
-  tabs.querySelectorAll("button").forEach(b => { b.classList.toggle("on", b.dataset.tab === tab); b.querySelector("span").textContent = names[b.dataset.tab]; });
+  const runner = isRunner();
+  if (!runner && (tab === "hr" || tab === "pace")) tab = "home";
+  let shown = 0;
+  tabs.querySelectorAll("button").forEach(b => { const hide = !runner && (b.dataset.tab === "hr" || b.dataset.tab === "pace"); b.hidden = hide; if (!hide) shown++; b.classList.toggle("on", b.dataset.tab === tab); b.querySelector("span").textContent = names[b.dataset.tab]; });
+  tabs.querySelector(".in").style.gridTemplateColumns = `repeat(${shown}, 1fr)`;
   app.innerHTML = tab === "home" ? homeView() : tab === "log" ? logView() : tab === "hr" ? hrView() : tab === "pace" ? paceView() : infoView();
 }
 
@@ -1116,6 +1131,7 @@ document.addEventListener("click", e => {
       if (runDel === i) { state.runs.splice(i, 1); runDel = -1; save(); render(); }
       else { runDel = i; render(); setTimeout(() => { runDel = -1; }, 3000); }
       break;
+    case "set-mode": state.mode = el.dataset.m === "runner" ? "runner" : "beginner"; save(); render(); break;
     case "lang": state.lang = el.dataset.l === "ms" ? "ms" : "en"; save(); render(); break;
     case "hr": { const h = hrState(), k = el.dataset.k; h[k] = (k === "adj" || k === "wx") ? v : el.dataset.v; save(); const box = document.getElementById("hrcalc"); if (box) box.innerHTML = hrCalc(); break; }
     case "sheet-bg": if (e.target === el) closeSheet(); break;
@@ -1210,14 +1226,15 @@ document.addEventListener("click", e => {
       setTimeout(() => URL.revokeObjectURL(a.href), 2000); break;
     }
     case "reset":
-      if (resetArmed) { const lang = state.lang; state = fresh(); state.lang = lang; save(); resetArmed = false; onb = { safe: false, walk30: null, bmi30: false, h: "", w: "" }; render(); }
+      if (resetArmed) { const lang = state.lang; state = fresh(); state.lang = lang; save(); resetArmed = false; onb = { safe: false, walk30: null, bmi30: false, h: "", w: "", mode: null }; render(); }
       else { resetArmed = true; render(); }
       break;
     case "onb-walk": onb.walk30 = v === 1; render(); break;
+    case "onb-mode": onb.mode = el.dataset.m; render(); break;
     case "onb-go":
-      if (!(onb.safe && onb.walk30 != null)) break;
-      state.started = true; state.bmi30 = onb.bmi30; state.h = onb.h; state.w = onb.w;
-      state.cur = { t: onb.walk30 && !onb.bmi30 ? 2 : 1, w: 1 };
+      if (!onbReady()) break;
+      state.started = true; state.bmi30 = onb.bmi30; state.h = onb.h; state.w = onb.w; state.mode = onb.mode;
+      state.cur = onb.mode === "runner" ? { t: 3, w: 1 } : { t: onb.walk30 && !onb.bmi30 ? 2 : 1, w: 1 };
       save(); tab = "home"; render(); break;
   }
 });
