@@ -162,6 +162,18 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .maf b { font-size: 30px; letter-spacing: -1px; color: var(--volt); }
 .talk div.ok { background: var(--volt); color: #000; }
 .warnt { color: var(--warn); }
+.kmbars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 110px; margin-top: 12px; }
+.kmbars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; font-size: 11px; color: var(--mute); }
+.kmbars i { display: block; width: 100%; border-radius: 6px 6px 3px 3px; background: var(--card2); min-height: 3px; }
+.kmbars i.now { background: var(--volt); }
+.kmbars b { font-size: 11px; color: var(--ink); }
+.runrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.runrow:first-child { border-top: 0; }
+.runrow .km { font-weight: 800; font-size: 17px; }
+.runrow .meta { font-size: 13px; color: var(--mute); }
+.typesel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0 10px; }
+.typesel button { padding: 9px 2px; border-radius: 999px; background: var(--card2); font-weight: 700; font-size: 13px; }
+.typesel button.sel { background: var(--ink); color: #fff; }
 .social { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
 .social a { display: block; text-align: center; padding: 11px 4px; border-radius: 999px; background: #2C2C2E; color: #fff; font-weight: 700; font-size: 14px; text-decoration: none; }
 .wa { display: block; text-align: center; margin-top: 8px; padding: 13px; border-radius: 999px; background: #25D366; color: #000; font-weight: 800; text-decoration: none; }
@@ -383,6 +395,7 @@ function activity() {
   state.history.forEach(h => (h.sessions || []).forEach(s => s && s.done && add(s.date, s.test ? "tst" : "on")));
   state.open.forEach(s => s && s.done && add(s.date, s.test ? "tst" : "on"));
   (state.tests || []).forEach(t => add(t.date, "tst"));
+  (state.runs || []).forEach(r => add(r.date, "on"));
   return m;
 }
 function streak() {
@@ -712,6 +725,72 @@ function homeView() {
   return h;
 }
 
+/* Free-run log for intermediate runners */
+const RTYPES = () => ({ easy: "Easy", long: L("Long", "Long run"), tempo: "Tempo", interval: "Interval", race: "Race", maf: L("MAF test", "Ujian MAF") });
+let runDraft = null, runDel = -1;
+const fmtPace = (km, min) => { const s = Math.round(min * 60 / km); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+function hrZoneOf(hr) {
+  const r = typeof hrNums === "function" ? hrNums() : null;
+  if (!r || !r.zones || !hr) return "";
+  let z = r.zones.findIndex(([a, b]) => hr >= a && hr < b);
+  if (z < 0) z = hr < r.zones[0][0] ? 0 : 4;
+  return "Z" + (z + 1);
+}
+function weekKm() {
+  const out = [], m0 = monday(new Date());
+  for (let k = 7; k >= 0; k--) {
+    const a = new Date(m0); a.setDate(a.getDate() - 7 * k); const b = new Date(a); b.setDate(b.getDate() + 7);
+    const km = (state.runs || []).filter(r => { const d = pd(r.date); return d >= a && d < b; }).reduce((t, r) => t + (+r.km || 0), 0);
+    out.push({ km, now: k === 0 });
+  }
+  return out;
+}
+function longest30(before) {
+  const lim = new Date(); lim.setDate(lim.getDate() - 30);
+  return Math.max(0, ...(state.runs || []).filter(r => pd(r.date) >= lim && r !== before).map(r => +r.km || 0));
+}
+function runsSection() {
+  const runs = (state.runs || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+  const wk = weekKm(), mx = Math.max(1, ...wk.map(w => w.km));
+  let h = `<h2>${L("Run log", "Log larian")}</h2><div class="card">
+    <p class="small mute" style="margin:0 0 10px">${L("For when you can already run: log any run, see your pace, zone and weekly km.", "Untuk yang dah boleh lari: log apa-apa larian, nampak pace, zon dan km seminggu.")}</p>
+    <button class="btn primary" data-act="run-new">${L("+ Add a run", "+ Tambah larian")}</button>`;
+  if (runs.length) {
+    const tw = wk[7].km, lw = wk[6].km;
+    h += `<div class="row between" style="margin-top:14px"><b>${L("This week", "Minggu ni")}: ${tw.toFixed(1)} km</b><span class="small mute">${L("last week", "minggu lepas")} ${lw.toFixed(1)} km</span></div>
+      <div class="kmbars">${wk.map(w => `<div><b>${w.km ? Math.round(w.km) : ""}</b><i class="${w.now ? "now" : ""}" style="height:${Math.round(w.km / mx * 80)}%"></i></div>`).join("")}</div>
+      <p class="small mute" style="margin:6px 0 0">${L("km per week, last 8 weeks", "km seminggu, 8 minggu lepas")}</p>`;
+    if (lw > 0 && tw > lw * 1.1) h += `<p class="small" style="color:var(--warn);margin:8px 0 0">${L("This week is more than 10% above last week. Build slowly so your tendons keep up.", "Minggu ni lebih 10% dari minggu lepas. Naik perlahan supaya tendon sempat adapt.")}</p>`;
+    h += `<div style="margin-top:10px">${runs.slice(0, 12).map(r => {
+      const i = state.runs.indexOf(r), min = parseTime(r.time), z = hrZoneOf(+r.hr);
+      return `<div class="runrow"><div><span class="km">${(+r.km).toFixed(2)} km</span> <span class="pill">${RTYPES()[r.type] || r.type}</span>
+        <div class="meta">${nice(r.date)}${min ? ` · ${r.time} · ${fmtPace(+r.km, min)} /km` : ""}${r.hr ? ` · ${r.hr} bpm${z ? " " + z : ""}` : ""}${r.rpe ? ` · ${L("effort", "penat")} ${r.rpe}` : ""}</div>
+        ${r.note ? `<div class="meta">${esc(r.note)}</div>` : ""}</div>
+        <button class="link" data-act="run-del" data-i="${i}">${runDel === i ? L("Tap again", "Tekan lagi") : L("Delete", "Padam")}</button></div>`;
+    }).join("")}</div>`;
+  }
+  return h + `</div>`;
+}
+function openRun() {
+  runDraft = runDraft || { date: today(), type: "easy", km: "", time: "", hr: "", rpe: null, note: "" };
+  const d = runDraft, v = x => String(x ?? "").replace(/"/g, "");
+  const chips = Array.from({ length: 10 }, (_, k) => k + 1).map(n => `<button class="chip ${d.rpe === n ? "sel" : ""}" data-act="run-rpe" data-v="${n}">${n}</button>`).join("");
+  sheet(`<p class="eyebrow">${L("Run log", "Log larian")}</p><h1 style="font-size:26px">${L("Add a run", "Tambah larian")}</h1>
+    <div class="typesel">${Object.entries(RTYPES()).map(([k, n]) => `<button class="${d.type === k ? "sel" : ""}" data-act="run-type" data-k="${k}">${n}</button>`).join("")}</div>
+    <div class="bmi"><label><span class="small mute">${L("Distance (km)", "Jarak (km)")}</span><input id="rKm" class="field" inputmode="decimal" placeholder="5.0" value="${v(d.km)}"></label>
+    <label><span class="small mute">${L("Time (mm:ss)", "Masa (mm:ss)")}</span><input id="rTime" class="field" inputmode="numeric" placeholder="32:30" value="${v(d.time)}"></label></div>
+    <div class="bmi" style="margin-top:10px"><label><span class="small mute">${L("Avg HR (optional)", "HR purata (pilihan)")}</span><input id="rHr" class="field" inputmode="numeric" placeholder="140" value="${v(d.hr)}"></label>
+    <label><span class="small mute">${L("Date", "Tarikh")}</span><input id="rDate" class="field" type="date" value="${v(d.date)}"></label></div>
+    <p class="small" style="margin:12px 0 0;font-weight:700">${L("How hard did it feel?", "Rasa penat berapa?")}</p><div class="chips ten">${chips}</div>
+    <label style="display:block;margin-top:10px"><span class="small mute">${L("Note (optional)", "Nota (pilihan)")}</span><input id="rNote" class="field" placeholder="${L("e.g. hot morning, legs heavy", "contoh: pagi panas, kaki berat")}" value="${v(d.note)}"></label>
+    <p class="small" id="rWarn" style="color:var(--warn);margin:8px 0 0"></p>
+    <button class="btn primary" data-act="run-save" style="margin-top:10px">${L("Save", "Simpan")}</button>
+    <button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`);
+}
+function readRun() {
+  const g = id => (document.getElementById(id) || {}).value;
+  Object.assign(runDraft, { km: (g("rKm") || "").replace(",", "."), time: (g("rTime") || "").replace(/[^0-9:]/g, ""), hr: (g("rHr") || "").replace(/[^0-9]/g, ""), date: g("rDate") || today(), note: (g("rNote") || "").slice(0, 120) });
+}
 function logView() {
   let h = topBar() + `<h1>${L("Your log", "Log sesi")}</h1>`;
   if (state.passes.t1) h += `<div class="badge" style="margin-top:16px"><div class="dot">1</div><div><b>${L("Stage 1 passed", "Lulus Tahap 1")}</b><br><span class="mute small">${nice(state.passes.t1)} · ${L("30 min brisk walk", "jalan laju 30 minit")}</span></div></div>`;
@@ -719,6 +798,7 @@ function logView() {
   const sk = streak();
   h += `<h2>${L("Consistency", "Konsisten")}</h2><div class="card"><div class="row between"><b>${sk ? L(`${sk}-week streak`, `Streak ${sk} minggu`) : L("No streak yet", "Belum ada streak")}</b><span class="mute small">${L("2+ sessions a week", "2+ sesi seminggu")}</span></div>
     ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> ${L("session", "sesi")}</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ${L("test", "ujian")}</span><span>${L("last 8 weeks", "8 minggu lepas")}</span></div></div>`;
+  h += runsSection();
   h += `<h2>${L("20-minute test", "Ujian 20 minit")}</h2>`;
   if (state.tests.length) {
     const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
@@ -1017,6 +1097,25 @@ document.addEventListener("click", e => {
     case "hr-mode": state.hrMode = el.dataset.m === "kv" ? "kv" : "pct"; save(); render(); break;
     case "vd-dist": state.vdDist = v; save(); render(); break;
     case "maf-adj": state.mafAdj = v; save(); render(); break;
+    case "run-new": runDraft = null; openRun(); break;
+    case "run-type": readRun(); runDraft.type = el.dataset.k; openRun(); break;
+    case "run-rpe": readRun(); runDraft.rpe = v; openRun(); break;
+    case "run-save": {
+      readRun(); const km = parseFloat(runDraft.km);
+      if (!(km > 0 && km < 200)) { document.getElementById("rWarn").textContent = L("Enter the distance in km.", "Isi jarak dalam km."); break; }
+      if (runDraft.time && !parseTime(runDraft.time)) { document.getElementById("rWarn").textContent = L("Time looks wrong. Use mm:ss, e.g. 32:30.", "Masa tak betul. Guna mm:ss, contoh 32:30."); break; }
+      const rec = { ...runDraft, km: Math.round(km * 100) / 100 };
+      const prev = longest30();
+      state.runs = state.runs || []; state.runs.push(rec); save(); closeSheet(); runDraft = null; render();
+      if (prev > 0 && rec.km > prev * 1.1) sheet(`<p class="eyebrow">${L("Heads up", "Perhatian")}</p><h1 style="font-size:24px">${L("Longest run this month, by a lot", "Larian paling jauh bulan ni, jauh beza")}</h1>
+        <p class="mute" style="margin-top:8px">${L(`${rec.km} km is more than 10% above your longest run in the last 30 days (${prev} km). Keep the next few runs easy.`, `${rec.km} km lebih 10% dari larian paling jauh 30 hari lepas (${prev} km). Buat beberapa larian seterusnya santai.`)}</p>
+        <button class="btn ghost" data-act="sheet-close">OK</button>`);
+      break;
+    }
+    case "run-del":
+      if (runDel === i) { state.runs.splice(i, 1); runDel = -1; save(); render(); }
+      else { runDel = i; render(); setTimeout(() => { runDel = -1; }, 3000); }
+      break;
     case "lang": state.lang = el.dataset.l === "ms" ? "ms" : "en"; save(); render(); break;
     case "hr": { const h = hrState(), k = el.dataset.k; h[k] = (k === "adj" || k === "wx") ? v : el.dataset.v; save(); const box = document.getElementById("hrcalc"); if (box) box.innerHTML = hrCalc(); break; }
     case "sheet-bg": if (e.target === el) closeSheet(); break;
