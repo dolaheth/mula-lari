@@ -162,6 +162,9 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .maf b { font-size: 30px; letter-spacing: -1px; color: var(--volt); }
 .talk div.ok { background: var(--volt); color: #000; }
 .warnt { color: var(--warn); }
+.social { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+.social a { display: block; text-align: center; padding: 11px 4px; border-radius: 999px; background: #2C2C2E; color: #fff; font-weight: 700; font-size: 14px; text-decoration: none; }
+.wa { display: block; text-align: center; margin-top: 8px; padding: 13px; border-radius: 999px; background: #25D366; color: #000; font-weight: 800; text-decoration: none; }
 /* language switch, same as the website nav */
 .lang { display: inline-flex; background: #E8E8ED; border-radius: 999px; padding: 3px; flex: none; }
 .lang button { padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--mute); }
@@ -211,6 +214,11 @@ details.hrg ol { padding-left: 20px; margin: 0 0 10px; } details.hrg li { margin
 const CLASS_URL = "";
 // When CLASS_URL is empty, the class card asks people to DM on Threads.
 const THREADS_URL = "https://www.threads.net/@abdullahadnan___";
+const SOCIAL = [
+  ["TikTok", "https://www.tiktok.com/@abdullahadnan___"],
+  ["Instagram", "https://www.instagram.com/abdullahadnan___/"],
+  ["Threads", "https://www.threads.net/@abdullahadnan___"]];
+const WA_GROUP = "https://chat.whatsapp.com/JCdYuTWG7ao2ZiEO7Abf56";
 
 /* ---------- Language: English first, BM on the switch ---------- */
 const L = (en, ms) => (state && state.lang === "ms" ? ms : en);
@@ -479,6 +487,13 @@ function testCard() {
     <button class="btn primary" data-act="test-intro" style="margin-top:12px">${L("Do the first test", "Buat ujian awal")}</button><button class="link" data-act="test-skip">${L("Skip for now", "Langkau dulu")}</button></div>`;
   return "";
 }
+function socialCard() {
+  return `<div class="card invite"><p class="eyebrow">${L("Follow & support", "Follow & sokong")}</p>
+    <h3>${L("Free running tips every week. Follow Coach Dollah.", "Tips lari free setiap minggu. Follow Coach Dollah.")}</h3>
+    <div class="social">${SOCIAL.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join("")}</div>
+    <a class="wa" href="${WA_GROUP}" target="_blank" rel="noopener">${L("Join the WhatsApp group", "Join group WhatsApp")}</a>
+    <p class="mute small" style="margin:8px 0 0">${L("Ask questions, share your runs, stay on track together.", "Tanya soalan, kongsi larian, sama-sama konsisten.")}</p></div>`;
+}
 function inviteCard() {
   if (!state.passes.t2) return "";
   const href = CLASS_URL || THREADS_URL;
@@ -692,6 +707,7 @@ function homeView() {
   else if (st.missing) h += `<p class="small">${L("First rate next-morning pain for every session you've done.", "Isi sakit esok pagi untuk semua sesi yang siap dulu.")}</p>`;
   else h += `<p class="small">${L("Finish at least 2 sessions first.", "Siapkan sekurang-kurangnya 2 sesi dulu.")}</p>`;
   h += `<button class="link" data-act="force-ulang">${L("No time this week? Repeat the week", "Tak sempat minggu ni? Ulang minggu")}</button></div>`;
+  h += socialCard();
   if (CLASS_URL && !state.passes.t2) h += `<a class="card invite" style="display:block;color:inherit;text-decoration:none" href="${CLASS_URL}" target="_blank" rel="noopener"><p class="eyebrow">${L("SihatLab online class", "Kelas online SihatLab")}</p><h3>${L("Want to do it with a coach and friends?", "Nak buat dengan coach dan kawan-kawan?")}</h3><p class="mute small">${L("8 live classes, Sundays 9pm. Tap to sign up →", "8 kelas live, Ahad 9 malam. Tekan untuk daftar →")}</p></a>`;
   return h;
 }
@@ -765,6 +781,8 @@ function infoView() {
   </div><button class="btn ghost" data-act="jump" style="margin-top:10px">${L("Change", "Tukar")}</button>
   <p class="mute small" style="margin-top:8px">${L("Stage 1 has 4 weeks, Stage 2 has 9 weeks.", "Tahap 1 ada 4 minggu, Tahap 2 ada 9 minggu.")}</p></div>
   ${isStandalone() ? "" : `<h2>${L("Install the app", "Pasang app")}</h2>${installCard("info")}`}
+  <h2>${L("Follow & support", "Follow & sokong")}</h2>
+  ${socialCard()}
   <h2>${L("Your data", "Data kau")}</h2>
   <div class="card">
     <p class="small mute">${L("Your whole log is saved on this phone only. SihatLab can't see it. Changing phones? Save a backup first.", "Semua log disimpan dalam phone ni je. SihatLab tak nampak. Tukar phone? Simpan backup dulu.")}</p>
