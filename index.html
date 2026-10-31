@@ -820,10 +820,10 @@ function vdotOf(dist, min) {
 }
 const mmss = sec => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
 function mtList(kind) { return (state.mtests || []).filter(t => t.kind === kind && parseTime(t.time)).sort((a, b) => a.date.localeCompare(b.date)); }
-const mtKinds = () => state.mtPick === "5k" ? ["5k"] : state.mtPick === "maf" ? ["maf"] : ["5k", "maf"];
+const mtKinds = () => [state.mtPick === "maf" ? "maf" : "5k"]; // one test only: 5K (default) or MAF
 function mtPicker() {
-  const p = state.mtPick || "both", b = (k, n) => `<button class="${p === k ? "sel" : ""}" data-act="mt-pick" data-k="${k}">${n}</button>`;
-  return `<div class="seg2" style="grid-template-columns:repeat(3,1fr);margin:6px 0 4px">${b("both", L("Both", "Dua-dua"))}${b("5k", L("5K only", "5K je"))}${b("maf", L("MAF only", "MAF je"))}</div>`;
+  const p = mtKinds()[0], b = (k, n) => `<button class="${p === k ? "sel" : ""}" data-act="mt-pick" data-k="${k}">${n}</button>`;
+  return `<div class="seg2" style="margin:6px 0 4px">${b("5k", L("5K test", "Ujian 5K"))}${b("maf", L("MAF test", "Ujian MAF"))}</div>`;
 }
 function mtNext(kind) {
   const xs = mtList(kind); if (!xs.length) return null;
@@ -867,7 +867,7 @@ function mtBlock(kind) {
 }
 function mtSection() {
   return `<h2>${L("Monthly test", "Ujian bulanan")}</h2><div class="card">
-    <p class="small mute" style="margin:0 0 6px">${L("No plan needed. MAF test every 4 weeks, 5K test every 8 weeks. See if you're improving.", "Tak perlu pelan. Ujian MAF setiap 4 minggu, ujian 5K setiap 8 minggu. Tengok improve ke tak.")}</p>
+    <p class="small mute" style="margin:0 0 6px">${L("No plan needed. Pick one test: 5K every 8 weeks, or MAF every 4 weeks.", "Tak perlu pelan. Pilih satu ujian: 5K setiap 8 minggu, atau MAF setiap 4 minggu.")}</p>
     ${mtPicker()}${mtKinds().map(mtBlock).join("")}</div>`;
 }
 function mtCard() {
