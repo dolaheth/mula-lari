@@ -162,6 +162,8 @@ ul.plain { padding-left: 18px; margin: 6px 0 10px; } ul.plain li { margin-bottom
 .maf b { font-size: 30px; letter-spacing: -1px; color: var(--volt); }
 .talk div.ok { background: var(--volt); color: #000; }
 .warnt { color: var(--warn); }
+.mt { padding: 12px 0; border-top: 1px solid var(--line); }
+.mt:first-of-type { border-top: 0; }
 .kmbars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; height: 110px; margin-top: 12px; }
 .kmbars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; font-size: 11px; color: var(--mute); }
 .kmbars i { display: block; width: 100%; border-radius: 6px 6px 3px 3px; background: var(--card2); min-height: 3px; }
@@ -687,6 +689,7 @@ function homeView() {
   h += `<div class="hero"><p class="eyebrow">${label(t, w)}</p><h1>${tx(TAHAP[t])}</h1>${journey()}
     <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${sk ? `<span class="pill v">${L(`${sk}-week streak`, `Streak ${sk} minggu`)}</span>` : ""}
     <button class="pill" data-act="remind">${state.remind ? L("Reminder: ", "Peringatan: ") + remSummary(state.remind) : L("+ Set run reminders", "+ Set peringatan lari")}</button></div></div>`;
+  if (isRunner()) h += mtCard();
   if (isRunner()) { const wk = weekKm(); h += `<div class="card"><div class="row between"><div><p class="eyebrow" style="margin:0">${L("Run log", "Log larian")}</p><b style="font-size:22px">${wk[7].km.toFixed(1)} km</b> <span class="small mute">${L("this week", "minggu ni")}</span></div><button class="pill v" data-act="run-new" style="padding:10px 14px">${L("+ Add run", "+ Larian")}</button></div></div>`; }
   h += installCard("home") + inviteCard() + testCard();
   if (st.maxP >= 6) h += `<div class="alert red">${L("Pain of 6/10 or more. Stop running and see a physio. Chest pain, dizziness or breathlessness? Call 999.", "Sakit 6/10 ke atas. Berhenti lari dan jumpa physio. Sakit dada, pening atau sesak nafas? Telefon 999.")}</div>`;
@@ -750,6 +753,74 @@ function longest30(before) {
   const lim = new Date(); lim.setDate(lim.getDate() - 30);
   return Math.max(0, ...(state.runs || []).filter(r => pd(r.date) >= lim && r !== before).map(r => +r.km || 0));
 }
+/* Monthly tests for runners: 5K time trial (VDOT) and MAF test (5 km at MAF HR). No plan, just measure every 4 weeks. */
+let mtDraft = null, mtDel = -1;
+function vdotOf(dist, min) {
+  const v = dist / min, vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v;
+  const pct = 0.8 + 0.1894393 * Math.exp(-0.012778 * min) + 0.2989558 * Math.exp(-0.1932605 * min);
+  return vo2 / pct;
+}
+const mmss = sec => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}`;
+function mtList(kind) { return (state.mtests || []).filter(t => t.kind === kind && parseTime(t.time)).sort((a, b) => a.date.localeCompare(b.date)); }
+function mtDue() {
+  const all = (state.mtests || []).map(t => t.date).sort();
+  if (!all.length) return "first";
+  const next = pd(all[all.length - 1]); next.setDate(next.getDate() + 28);
+  return ds(next) <= today() ? "due" : null;
+}
+function verdict(a, b, tol) { // smaller time = better
+  const d = b - a;
+  if (d <= -tol) return [L("Improved 💪", "Improve 💪"), "v"];
+  if (d >= tol) return [L("Slower", "Turun"), "y"];
+  return [L("Same", "Sama"), ""];
+}
+function mtBlock(kind) {
+  const xs = mtList(kind);
+  const is5 = kind === "5k";
+  const name = is5 ? L("5K test", "Ujian 5K") : L("MAF test", "Ujian MAF");
+  const help = is5 ? L("Run 5 km as fast as you can hold. Time = your fitness (VDOT).", "Lari 5 km selaju yang mampu. Masa = fitness kau (VDOT).")
+                   : L("Warm up 10–15 min, then 5 km at your MAF HR. Same route, same time of day.", "Warm-up 10–15 minit, lepas tu 5 km pada HR MAF. Laluan dan waktu yang sama.");
+  let h = `<div class="mt"><div class="row between"><b>${name}</b><button class="pill v" data-act="mt-new" data-k="${kind}">+ ${L("Add", "Tambah")}</button></div><p class="small mute" style="margin:4px 0 0">${help}</p>`;
+  if (!xs.length) return h + `<p class="small mute" style="margin:8px 0 0">${L("No result yet.", "Belum ada result.")}</p></div>`;
+  const sec = t => parseTime(t.time) * 60;
+  const show = t => is5 ? `${t.time} · VDOT ${vdotOf(5000, parseTime(t.time)).toFixed(1)}` : `${mmss(sec(t) / 5)} /km${t.hr ? ` · ${t.hr} bpm` : ""}`;
+  const first = xs[0], last = xs[xs.length - 1], prev = xs[xs.length - 2];
+  const tol = is5 ? 10 : 25;
+  if (xs.length > 1) {
+    const [vt, vc] = verdict(sec(prev), sec(last), tol), [ft, fc] = verdict(sec(first), sec(last), tol);
+    h += `<div class="ba" style="margin-top:10px"><div><span class="small mute">${L("First", "Pertama")} · ${nice(first.date)}</span><b style="font-size:18px">${is5 ? first.time : mmss(sec(first) / 5)}</b></div><span class="to">→</span><div><span class="small mute">${L("Latest", "Terkini")} · ${nice(last.date)}</span><b style="font-size:18px">${is5 ? last.time : mmss(sec(last) / 5)}</b></div></div>
+      <p style="margin:6px 0 0"><span class="pill ${vc}">${L("vs last month", "vs bulan lepas")}: ${vt}</span><span class="pill ${fc}">${L("vs first", "vs pertama")}: ${ft}</span></p>`;
+  }
+  const mx = Math.max(...xs.map(sec)), mn = Math.min(...xs.map(sec));
+  h += `<div class="kmbars" style="grid-template-columns:repeat(${Math.min(xs.length, 12)},1fr);height:80px">${xs.slice(-12).map((t, i, arr) => `<div><i class="${i === arr.length - 1 ? "now" : ""}" style="height:${mx === mn ? 60 : Math.round(30 + (mx - sec(t)) / (mx - mn) * 60)}%"></i></div>`).join("")}</div>
+    <p class="small mute" style="margin:4px 0 6px">${L("Taller bar = faster", "Bar tinggi = lagi laju")}</p>`;
+  h += xs.slice().reverse().slice(0, 6).map(t => { const i = state.mtests.indexOf(t); return `<div class="runrow"><div><span class="km" style="font-size:15px">${show(t)}</span><div class="meta">${nice(t.date)}</div></div><button class="link" data-act="mt-del" data-i="${i}">${mtDel === i ? L("Tap again", "Tekan lagi") : L("Delete", "Padam")}</button></div>`; }).join("");
+  return h + `</div>`;
+}
+function mtSection() {
+  return `<h2>${L("Monthly test", "Ujian bulanan")}</h2><div class="card">
+    <p class="small mute" style="margin:0 0 6px">${L("No plan needed. Test once every 4 weeks and see if you're improving.", "Tak perlu pelan. Buat ujian setiap 4 minggu, tengok improve ke tak.")}</p>
+    ${mtBlock("5k")}${mtBlock("maf")}</div>`;
+}
+function mtCard() {
+  const due = mtDue();
+  if (!due) return "";
+  return `<div class="card invite"><p class="eyebrow">${due === "first" ? L("First test", "Ujian pertama") : L("Monthly test time", "Masa ujian bulanan")}</p>
+    <h3>${due === "first" ? L("Set your baseline: a 5K test and a MAF test.", "Set titik mula: ujian 5K dan ujian MAF.") : L("4 weeks since your last test. Test again and see if you've improved.", "Dah 4 minggu sejak ujian lepas. Ulang dan tengok improve ke tak.")}</h3>
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" data-act="mt-new" data-k="5k">${L("5K test", "Ujian 5K")}</button><button class="btn" data-act="mt-new" data-k="maf" style="background:#2C2C2E;color:#fff">${L("MAF test", "Ujian MAF")}</button></div></div>`;
+}
+function openMT() {
+  const d = mtDraft, v = x => String(x ?? "").replace(/"/g, ""), is5 = d.kind === "5k";
+  const age = parseInt(hrState().age, 10), maf = age >= 12 && age <= 90 ? 180 - age + (+state.mafAdj || 0) : null;
+  sheet(`<p class="eyebrow">${is5 ? L("5K test", "Ujian 5K") : L("MAF test", "Ujian MAF")}</p><h1 style="font-size:26px">${L("Enter your result", "Isi result")}</h1>
+    ${!is5 && maf ? `<p class="small mute" style="margin-top:6px">${L(`Your MAF HR: ${maf} bpm. Keep under it for the whole 5 km.`, `HR MAF kau: ${maf} bpm. Kekal bawah nombor ni sepanjang 5 km.`)}</p>` : ""}
+    <div class="bmi" style="margin-top:12px"><label><span class="small mute">${L("Time for 5 km (mm:ss)", "Masa 5 km (mm:ss)")}</span><input id="mTime" class="field" inputmode="numeric" placeholder="${is5 ? "28:30" : "36:00"}" value="${v(d.time)}"></label>
+    ${is5 ? `<label><span class="small mute">${L("Date", "Tarikh")}</span><input id="mDate" class="field" type="date" value="${v(d.date)}"></label>` : `<label><span class="small mute">${L("Avg HR", "HR purata")}</span><input id="mHr" class="field" inputmode="numeric" placeholder="${maf || 145}" value="${v(d.hr)}"></label>`}</div>
+    ${is5 ? "" : `<label style="display:block;margin-top:10px"><span class="small mute">${L("Date", "Tarikh")}</span><input id="mDate" class="field" type="date" value="${v(d.date)}"></label>`}
+    <p class="small" id="mWarn" style="color:var(--warn);margin:8px 0 0"></p>
+    <button class="btn primary" data-act="mt-save" style="margin-top:10px">${L("Save", "Simpan")}</button>
+    <button class="btn ghost" data-act="sheet-close">${L("Cancel", "Batal")}</button>`);
+}
 function runsSection() {
   const runs = (state.runs || []).slice().sort((a, b) => b.date.localeCompare(a.date));
   const wk = weekKm(), mx = Math.max(1, ...wk.map(w => w.km));
@@ -799,7 +870,7 @@ function logView() {
   const sk = streak();
   h += `<h2>${L("Consistency", "Konsisten")}</h2><div class="card"><div class="row between"><b>${sk ? L(`${sk}-week streak`, `Streak ${sk} minggu`) : L("No streak yet", "Belum ada streak")}</b><span class="mute small">${L("2+ sessions a week", "2+ sesi seminggu")}</span></div>
     ${calendarGrid(8)}<div class="row mute" style="gap:14px;font-size:12px;margin-top:8px"><span><span class="pill v" style="padding:0 6px">&nbsp;</span> ${L("session", "sesi")}</span><span><span class="pill" style="padding:0 6px;background:var(--ink)">&nbsp;</span> ${L("test", "ujian")}</span><span>${L("last 8 weeks", "8 minggu lepas")}</span></div></div>`;
-  if (isRunner()) h += runsSection();
+  if (isRunner()) h += mtSection() + runsSection();
   h += `<h2>${L("20-minute test", "Ujian 20 minit")}</h2>`;
   if (state.tests.length) {
     const a = state.tests[0], b = state.tests[state.tests.length - 1], two = state.tests.length > 1;
@@ -1112,6 +1183,18 @@ document.addEventListener("click", e => {
     case "hr-mode": state.hrMode = el.dataset.m === "kv" ? "kv" : "pct"; save(); render(); break;
     case "vd-dist": state.vdDist = v; save(); render(); break;
     case "maf-adj": state.mafAdj = v; save(); render(); break;
+    case "mt-new": mtDraft = { kind: el.dataset.k, date: today(), time: "", hr: "" }; openMT(); break;
+    case "mt-save": {
+      const g = id => (document.getElementById(id) || {}).value || "";
+      mtDraft.time = g("mTime").replace(/[^0-9:]/g, ""); mtDraft.hr = g("mHr").replace(/[^0-9]/g, ""); mtDraft.date = g("mDate") || today();
+      const m = parseTime(mtDraft.time);
+      if (!m || m < 12 || m > 90) { document.getElementById("mWarn").textContent = L("Enter the time for 5 km, e.g. 28:30.", "Isi masa untuk 5 km, contoh 28:30."); break; }
+      state.mtests = state.mtests || []; state.mtests.push({ ...mtDraft }); save(); closeSheet(); mtDraft = null; tab = "log"; render(); break;
+    }
+    case "mt-del":
+      if (mtDel === i) { state.mtests.splice(i, 1); mtDel = -1; save(); render(); }
+      else { mtDel = i; render(); setTimeout(() => { mtDel = -1; }, 3000); }
+      break;
     case "run-new": runDraft = null; openRun(); break;
     case "run-type": readRun(); runDraft.type = el.dataset.k; openRun(); break;
     case "run-rpe": readRun(); runDraft.rpe = v; openRun(); break;
