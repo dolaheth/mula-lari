@@ -285,7 +285,7 @@ const totalMin = segs => Math.round(segs.reduce((a, s) => a + s.sec, 0) / MIN);
 /* ---------- Saved on the phone only ---------- */
 const KEY = "sihatlab-mula-lari-v1";
 let storageOk = true;
-const fresh = () => ({ v: 1, lang: "en", started: false, bmi30: false, sound: true, voice: true, cur: { t: 1, w: 1 }, open: [null, null, null], history: [], passes: {}, moves: true, remind: null, tests: [], testDue: false, testSkip: false, hr: { age: "", rest: "", own: "", f: "220", adj: 0, wx: 0, m: "pct" } });
+const fresh = () => ({ v: 1, lang: "en", started: false, bmi30: false, sound: true, voice: true, cur: { t: 1, w: 1 }, open: [null, null, null], history: [], passes: {}, moves: true, remind: null, tests: [], testDue: false, testSkip: false, hr: { age: "", rest: "", own: "", f: "tanaka", adj: 0, wx: 0, m: "pct" } });
 function load() {
   try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(fresh(), JSON.parse(raw)); }
   catch (e) { storageOk = false; }
@@ -730,8 +730,10 @@ function logView() {
 
 function hrView() {
   return topBar() + `<h1>${L("Heart rate zones", "Zon heart rate")}</h1>
-  <p class="mute" style="margin:8px 0 14px">${L("Your 5 training zones and MAF number, worked out for you.", "5 zon latihan dan nombor MAF kau, app kira sendiri.")}</p>
-  <div class="card">${hrBox()}</div>`;
+  <p class="mute" style="margin:8px 0 14px">${L("Your 5 training zones, worked out for you.", "5 zon latihan kau, app kira sendiri.")}</p>
+  <div class="card" id="hrcalc">${hrCalc()}</div>${hrGuide()}
+  <h2>MAF</h2>
+  <div class="card">${mafBox()}</div>`;
 }
 function paceView() {
   return topBar() + `<h1>${L("VDOT and paces", "VDOT dan pace")}</h1>
@@ -744,7 +746,6 @@ function infoView() {
   <h2>${L("The talk test", "Ujian bercakap")}</h2>
   <div class="talk"><div><b>${L("Can sing", "Boleh nyanyi")}</b><br>${L("Too easy", "Terlalu senang")}</div><div class="ok"><b>${L("Full sentences", "Ayat penuh")}</b><br>${L("Just right", "Betul")}</div><div><b>${L("2–3 words", "2–3 perkataan")}</b><br>${L("Too fast", "Terlalu laju")}</div></div>
   <p class="mute small">${L("Running slower than a brisk walk is completely fine.", "Lari lebih perlahan dari jalan laju pun tak apa.")}</p>
-  ${hrSection()}
   <h2>${L("Pain scale (next morning)", "Skala sakit (esok pagi)")}</h2>
   <div class="card"><p><span class="pill g">0–2</span> ${L("Keep following the plan.", "Teruskan ikut pelan.")}</p><p><span class="pill y">3–5</span> ${L("Repeat that week first.", "Ulang minggu tu dulu.")}</p><p style="margin:0"><span class="pill r">6+</span> ${L("Or sharp pain, swelling, limping: stop and see a physio.", "Atau sakit tajam, bengkak, terhincut: berhenti dan jumpa physio.")}</p></div>
   <h2>${L("Settings", "Tetapan")}</h2>
@@ -858,46 +859,22 @@ function bmiNote(b) {
     ? L(`Your BMI is <b style="color:var(--warn)">${b}</b>. That's 30 or more, so the plan uses the BMI 30+ version (gentler on your knees).`, `BMI kau <b style="color:var(--warn)">${b}</b>. 30 ke atas, jadi pelan ikut versi BMI 30+ (lagi lembut untuk lutut).`)
     : L(`Your BMI is <b style="color:var(--good)">${b}</b>. Under 30, so you follow the normal plan.`, `BMI kau <b style="color:var(--good)">${b}</b>. Bawah 30, ikut pelan biasa.`);
 }
-/* Heart rate zones (same as course Bab 2 and 3) */
-const ZN = () => [
-  ["Z1", L("Recovery · can sing", "Recovery · boleh menyanyi")],
-  ["Z2", L("Aerobic base · full sentences", "Aerobic base · ayat penuh")],
-  ["Z3", L("Tempo · short sentences", "Tempo · ayat pendek")],
-  ["Z4", L("Threshold · 2–3 words", "Threshold · 2–3 perkataan")],
-  ["Z5", L("VO2max · can't talk", "VO2max · tak boleh cakap")]];
-function hrCalc() {
-  const age = parseInt(state.age, 10), rest = parseInt(state.rhr, 10);
-  if (!(age >= 12 && age <= 90)) return null;
-  const max = Math.round(208 - 0.7 * age);
-  const kv = state.hrMode === "kv" && rest >= 30 && rest <= 110 && rest < max;
-  const at = p => Math.round(kv ? (max - rest) * p + rest : max * p);
-  const cuts = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
-  return { max, kv, maf: 180 - age + (+state.mafAdj || 0), z: ZN().map((n, i) => [n[0], n[1], at(cuts[i]), at(cuts[i + 1])]) };
-}
-function hrOut() {
-  const r = hrCalc();
-  if (!r) return `<p class="mute small" style="margin:10px 0 0">${L("Enter your age and your zones appear.", "Isi umur, zon keluar sendiri.")}</p>`;
-  const needRest = state.hrMode === "kv" && !r.kv ? `<p class="small" style="color:var(--warn);margin:10px 0 0">${L("Karvonen needs your resting HR. Showing the simple % of max HR for now.", "Karvonen perlukan HR rehat. Buat masa ni tunjuk cara biasa (% HR maksimum).")}</p>` : "";
-  return needRest + `<p class="small" style="margin:10px 0 0">${L("Max HR", "HR maksimum")} <b>${r.max}</b> bpm (208 − 0.7 × ${L("age", "umur")})${r.kv ? L(" · Karvonen with your resting HR", " · Karvonen guna HR rehat") : ""}</p>
-    <table class="zones">${r.z.map(([n, d, a, b]) => `<tr class="${n === "Z2" ? "on" : ""}"><td class="z">${n}</td><td>${d}</td><td class="b">${a}–${b}</td></tr>`).join("")}</table>
-    <p class="small mute" style="margin:8px 0 0">${L("Most runs in Zone 2: you can still talk in full sentences.", "Kebanyakan larian dalam Zone 2: masih boleh cakap ayat penuh.")}</p>
-    <div class="maf"><div><p style="margin:0;font-weight:700">MAF</p><p class="small" style="margin:0;color:#A1A1A6">${L("Easy-run ceiling", "Had HR easy run")} · 180 − ${L("age", "umur")}${+state.mafAdj ? (+state.mafAdj > 0 ? " + 5" : " − 5") : ""}</p></div><b>${r.maf}</b></div>`;
-}
-function hrBox() {
-  const v = x => String(x || "").replace(/"/g, "");
+/* MAF, separate from the zones (course Bab 3): 180 - age, -5 new/injured, +5 consistent 2+ years */
+function mafOut() {
+  const age = parseInt(hrState().age, 10);
+  if (!(age >= 12 && age <= 90)) return `<p class="mute small" style="margin:10px 0 0">${L("Enter your age in the zones above first.", "Isi umur dalam zon kat atas dulu.")}</p>`;
   const adj = +state.mafAdj || 0;
-  const kvMode = state.hrMode === "kv";
-  return `<p class="small mute" style="margin:0 0 4px">${L("Method", "Cara kira")}</p>
-    <div class="seg2" style="margin:0 0 12px"><button class="${kvMode ? "" : "sel"}" data-act="hr-mode" data-m="pct">${L("Simple (% of max)", "Biasa (% HR maks)")}</button><button class="${kvMode ? "sel" : ""}" data-act="hr-mode" data-m="kv">Karvonen</button></div>
-    <div class="bmi"><label><span class="small mute">${L("Age", "Umur")}</span><input type="text" inputmode="numeric" placeholder="30" value="${v(state.age)}" data-hr="age"></label>
-    <label><span class="small mute">${kvMode ? L("Resting HR", "HR rehat") : L("Resting HR (for Karvonen)", "HR rehat (untuk Karvonen)")}</span><input type="text" inputmode="numeric" placeholder="60" value="${v(state.rhr)}" data-hr="rhr"></label></div>
-    <p class="small mute" style="margin:10px 0 4px">MAF</p>
+  return `<div class="maf"><div><p style="margin:0;font-weight:700">MAF</p><p class="small" style="margin:0;color:#A1A1A6">180 − ${age}${adj ? (adj > 0 ? " + 5" : " − 5") : ""}</p></div><b>${180 - age + adj}</b></div>`;
+}
+function mafBox() {
+  const adj = +state.mafAdj || 0;
+  return `<p class="small mute" style="margin:0 0 8px">${L("Your easy-run ceiling. When your HR goes above it, slow down or walk.", "Had HR untuk easy run. Bila HR lebih nombor ni, perlahankan atau jalan.")}</p>
     <div class="seg2" style="grid-template-columns:repeat(3,1fr);margin-top:0">
       <button class="${adj === -5 ? "sel" : ""}" data-act="maf-adj" data-v="-5">${L("New / injured −5", "Baru / injury −5")}</button>
       <button class="${adj === 0 ? "sel" : ""}" data-act="maf-adj" data-v="0">${L("Normal", "Biasa")}</button>
       <button class="${adj === 5 ? "sel" : ""}" data-act="maf-adj" data-v="5">${L("2+ yrs, no injury +5", "2+ tahun +5")}</button></div>
-    <div id="hr-out">${hrOut()}</div>
-    <p class="small mute" style="margin:10px 0 0">${L("Formulas are estimates. Your watch may use another method. Measure resting HR in the morning before getting up.", "Formula cuma anggaran. Jam korang mungkin guna kaedah lain. Ukur HR rehat pagi, sebelum bangun dari katil.")}</p>`;
+    <div id="maf-out">${mafOut()}</div>
+    <p class="small mute" style="margin:10px 0 0">${L("MAF is a tool to control effort, not a rule. It needs consistent mileage over months.", "MAF ni alat kawal effort, bukan hukum. Dia perlukan mileage konsisten berbulan-bulan.")}</p>`;
 }
 /* VDOT (Jack Daniels), same as course Bab 4: 5K 21:00 -> VDOT 47 */
 function parseTime(t) {
@@ -1135,15 +1112,8 @@ document.addEventListener("input", e => {
   const o = document.getElementById("vd-out"); if (o) o.innerHTML = vdotOut();
 });
 document.addEventListener("input", e => {
-  const el = e.target.closest("[data-hr]");
-  if (!el) return;
-  state[el.dataset.hr] = el.value.replace(/[^0-9]/g, "").slice(0, 3);
-  save();
-  const o = document.getElementById("hr-out"); if (o) o.innerHTML = hrOut();
-});
-document.addEventListener("input", e => {
   const hi = e.target.closest("[data-hr]");
-  if (hi) { hrState()[hi.dataset.hr] = hi.value.trim(); save(); const o = document.getElementById("hr-out"); if (o) o.innerHTML = hrOut(); return; }
+  if (hi) { hrState()[hi.dataset.hr] = hi.value.trim(); save(); const o = document.getElementById("hr-out"); if (o) o.innerHTML = hrOut(); const m = document.getElementById("maf-out"); if (m) m.innerHTML = mafOut(); return; }
   const el = e.target.closest("[data-bmi]");
   if (!el) return;
   const scope = el.dataset.bmi, obj = scope === "onb" ? onb : state;
