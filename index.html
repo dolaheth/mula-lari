@@ -861,7 +861,7 @@ function hrCalc() {
   const age = parseInt(state.age, 10), rest = parseInt(state.rhr, 10);
   if (!(age >= 12 && age <= 90)) return null;
   const max = Math.round(208 - 0.7 * age);
-  const kv = rest >= 30 && rest <= 110 && rest < max;
+  const kv = state.hrMode === "kv" && rest >= 30 && rest <= 110 && rest < max;
   const at = p => Math.round(kv ? (max - rest) * p + rest : max * p);
   const cuts = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
   return { max, kv, maf: 180 - age + (+state.mafAdj || 0), z: ZN().map((n, i) => [n[0], n[1], at(cuts[i]), at(cuts[i + 1])]) };
@@ -869,7 +869,8 @@ function hrCalc() {
 function hrOut() {
   const r = hrCalc();
   if (!r) return `<p class="mute small" style="margin:10px 0 0">${L("Enter your age and your zones appear.", "Isi umur, zon keluar sendiri.")}</p>`;
-  return `<p class="small" style="margin:10px 0 0">${L("Max HR", "HR maksimum")} <b>${r.max}</b> bpm (208 − 0.7 × ${L("age", "umur")})${r.kv ? L(" · Karvonen with your resting HR", " · Karvonen guna HR rehat") : ""}</p>
+  const needRest = state.hrMode === "kv" && !r.kv ? `<p class="small" style="color:var(--warn);margin:10px 0 0">${L("Karvonen needs your resting HR. Showing the simple % of max HR for now.", "Karvonen perlukan HR rehat. Buat masa ni tunjuk cara biasa (% HR maksimum).")}</p>` : "";
+  return needRest + `<p class="small" style="margin:10px 0 0">${L("Max HR", "HR maksimum")} <b>${r.max}</b> bpm (208 − 0.7 × ${L("age", "umur")})${r.kv ? L(" · Karvonen with your resting HR", " · Karvonen guna HR rehat") : ""}</p>
     <table class="zones">${r.z.map(([n, d, a, b]) => `<tr class="${n === "Z2" ? "on" : ""}"><td class="z">${n}</td><td>${d}</td><td class="b">${a}–${b}</td></tr>`).join("")}</table>
     <p class="small mute" style="margin:8px 0 0">${L("Most runs in Zone 2: you can still talk in full sentences.", "Kebanyakan larian dalam Zone 2: masih boleh cakap ayat penuh.")}</p>
     <div class="maf"><div><p style="margin:0;font-weight:700">MAF</p><p class="small" style="margin:0;color:#A1A1A6">${L("Easy-run ceiling", "Had HR easy run")} · 180 − ${L("age", "umur")}${+state.mafAdj ? (+state.mafAdj > 0 ? " + 5" : " − 5") : ""}</p></div><b>${r.maf}</b></div>`;
@@ -877,8 +878,11 @@ function hrOut() {
 function hrBox() {
   const v = x => String(x || "").replace(/"/g, "");
   const adj = +state.mafAdj || 0;
-  return `<div class="bmi"><label><span class="small mute">${L("Age", "Umur")}</span><input type="text" inputmode="numeric" placeholder="30" value="${v(state.age)}" data-hr="age"></label>
-    <label><span class="small mute">${L("Resting HR (optional)", "HR rehat (pilihan)")}</span><input type="text" inputmode="numeric" placeholder="60" value="${v(state.rhr)}" data-hr="rhr"></label></div>
+  const kvMode = state.hrMode === "kv";
+  return `<p class="small mute" style="margin:0 0 4px">${L("Method", "Cara kira")}</p>
+    <div class="seg2" style="margin:0 0 12px"><button class="${kvMode ? "" : "sel"}" data-act="hr-mode" data-m="pct">${L("Simple (% of max)", "Biasa (% HR maks)")}</button><button class="${kvMode ? "sel" : ""}" data-act="hr-mode" data-m="kv">Karvonen</button></div>
+    <div class="bmi"><label><span class="small mute">${L("Age", "Umur")}</span><input type="text" inputmode="numeric" placeholder="30" value="${v(state.age)}" data-hr="age"></label>
+    <label><span class="small mute">${kvMode ? L("Resting HR", "HR rehat") : L("Resting HR (for Karvonen)", "HR rehat (untuk Karvonen)")}</span><input type="text" inputmode="numeric" placeholder="60" value="${v(state.rhr)}" data-hr="rhr"></label></div>
     <p class="small mute" style="margin:10px 0 4px">MAF</p>
     <div class="seg2" style="grid-template-columns:repeat(3,1fr);margin-top:0">
       <button class="${adj === -5 ? "sel" : ""}" data-act="maf-adj" data-v="-5">${L("New / injured −5", "Baru / injury −5")}</button>
@@ -1007,6 +1011,7 @@ document.addEventListener("click", e => {
   if (!el) return;
   const act = el.dataset.act, i = +el.dataset.i, v = +el.dataset.v;
   switch (act) {
+    case "hr-mode": state.hrMode = el.dataset.m === "kv" ? "kv" : "pct"; save(); render(); break;
     case "vd-dist": state.vdDist = v; save(); render(); break;
     case "maf-adj": state.mafAdj = v; save(); render(); break;
     case "lang": state.lang = el.dataset.l === "ms" ? "ms" : "en"; save(); render(); break;
