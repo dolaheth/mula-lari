@@ -235,6 +235,9 @@ const SOCIAL = [
 const WA_GROUP = "https://chat.whatsapp.com/JCdYuTWG7ao2ZiEO7Abf56";
 // Coach's WhatsApp number, digits only with country code (e.g. "60123456789"). Empty = "send to coach" button hidden.
 const COACH_WA = "601116461957";
+// Access codes for bundle students (whole app is locked without one).
+// Only the SHA-256 of each code lives here, uppercase. New cohort: printf 'CODE' | shasum -a 256, add the hash, keep old ones so past students stay in.
+const ACCESS_HASHES = ["45ff721c0ffbdb2e2ff0923d686eae1c489e3f9922e6484c421dd54b74c8cb74"];
 // GoatCounter code (free, no personal data). e.g. "sihatlab" for sihatlab.goatcounter.com. Empty = no counting.
 const GC_CODE = "";
 
@@ -1313,6 +1316,7 @@ function render() {
   const app = document.getElementById("app");
   const tabs = document.getElementById("tabs");
   document.documentElement.lang = state.lang === "ms" ? "ms" : "en";
+  if (!ACCESS_HASHES.includes(state.access)) { tabs.hidden = true; app.innerHTML = gateView(); return; }
   if (!state.started) { tabs.hidden = true; app.innerHTML = onboardView(); return; }
   tabs.hidden = false;
   const names = { home: L("Today", "Hari ni"), log: "Log", hr: L("Zones", "Zon HR"), pace: "VDOT", info: L("Guide", "Panduan") };
@@ -1323,6 +1327,35 @@ function render() {
   tabs.querySelector(".in").style.gridTemplateColumns = `repeat(${shown}, 1fr)`;
   app.innerHTML = tab === "home" ? homeView() : tab === "log" ? logView() : tab === "hr" ? hrView() : tab === "pace" ? paceView() : infoView();
 }
+
+/* ---------- Access gate (bundle students only) ---------- */
+function gateView() {
+  const ask = CLASS_URL || `https://wa.me/${COACH_WA}?text=${encodeURIComponent(L("Hi Coach Dollah, I'd like to join the SihatLab Lari 30 bundle and get the Mula Lari app.", "Hi Coach Dollah, saya nak join bundle SihatLab Lari 30 dan dapatkan app Mula Lari."))}`;
+  return `${topBar()}
+  <div class="card" style="margin-top:16px">
+    <p class="eyebrow">${L("SihatLab Lari 30 students", "Student SihatLab Lari 30")}</p>
+    <h1 style="font-size:26px;margin-top:6px">${L("Enter your access code", "Masukkan kod akses")}</h1>
+    <p class="mute" style="margin-top:8px">${L("Mula Lari is for students in the Lari 30 bundle. Your code is in the class WhatsApp group.", "Mula Lari untuk student bundle Lari 30. Kod akses ada dalam group WhatsApp kelas.")}</p>
+    <input id="accessCode" class="field" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="LARI-XX-0000" style="margin-top:14px;text-transform:uppercase">
+    <p id="accessErr" class="small" style="color:var(--red-ink);margin-top:8px" hidden>${L("That code doesn't match. Check the WhatsApp group and try again.", "Kod tu tak betul. Semak group WhatsApp dan cuba lagi.")}</p>
+    <button class="btn primary" data-unlock style="margin-top:14px">${L("Open the app", "Buka app")}</button>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>${L("Not a student yet?", "Belum join lagi?")}</h3>
+    <p class="mute small" style="margin-top:6px">${L("Join the Lari 30 bundle: 8 live classes, the Nota Running e-book and this app.", "Join bundle Lari 30: 8 kelas live, e-book Nota Running dan app ni.")}</p>
+    <a class="btn" href="${ask}" target="_blank" rel="noopener" style="margin-top:10px;text-decoration:none">${CLASS_URL ? L("See the class", "Tengok kelas") : L("Ask the coach on WhatsApp", "Tanya coach kat WhatsApp")}</a>
+  </div>`;
+}
+async function tryUnlock() {
+  const inp = document.getElementById("accessCode"); if (!inp) return;
+  const code = inp.value.trim().toUpperCase();
+  let hex = "";
+  try { const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code)); hex = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join(""); } catch (e) {}
+  if (ACCESS_HASHES.includes(hex)) { state.access = hex; save(); render(); }
+  else { const er = document.getElementById("accessErr"); if (er) er.hidden = false; }
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-unlock]")) tryUnlock(); });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "accessCode") tryUnlock(); });
 
 /* ---------- Taps ---------- */
 document.addEventListener("click", e => {
